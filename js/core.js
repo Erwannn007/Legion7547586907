@@ -11,27 +11,151 @@ const DPR = Math.max(1, Math.min(3, Math.round(window.devicePixelRatio || 1)));
 const PX = 3; // taille d'un pixel d'interface en px CSS
 
 /* ---------- UNITÉS ---------- */
+// capacités : proj (projectile) · aoe · kite (recule) · minR · pierce · charge (multiplicateur) · taunt · block (bloque de face)
+// deflect (renvoie les tirs) · cleave (frappe autour) · kb (repousse) · stun · steal (vol de vie) · regen · rage · burn · heal
+// aura (soins de zone) · raise (relève les morts) · spores · resist (résiste aux tirs) · dodge · backline · snipe · burst · fly · boom (explose)
 const UT = {
-  sword: {name:'Épéiste', role:'Mêlée', ic:'atk', cost:10, hp:130, dmg:17, range:8, cd:.75, spd:40, squad:6, armor:.2, r:7, unlock:0,
+  sword: {name:'Épéiste', era:'Médiéval', role:'Mêlée', cost:10, hp:130, dmg:17, range:8, cd:.75, spd:40, squad:6, armor:.2, r:7, unlock:0, charge:2,
     ab:'Charge', abd:'Fonce sur sa cible et double les dégâts de son premier coup. Se recharge en 7 s.',
-    good:'Archers, Grenadiers', bad:'Lanciers, Gardiens',
+    good:'Archers, Sapeurs', bad:'Lanciers, Gardiens',
     desc:'Chevalier errant, rapide et bien protégé. Idéal pour plonger sur la ligne arrière.'},
-  archer:{name:'Archère', role:'Distance', ic:'range', cost:12, hp:60, dmg:15, range:135, cd:1.4, spd:32, squad:6, armor:0, r:6, unlock:0, proj:'arrow', kite:28,
+  archer:{name:'Archère', era:'Médiéval', role:'Distance', cost:12, hp:60, dmg:15, range:135, cd:1.4, spd:32, squad:6, armor:0, r:6, unlock:0, proj:'arrow', kite:28,
     ab:'Volée', abd:'Tire en cloche à très longue portée et recule quand un ennemi s’approche.',
-    good:'Lanciers, Grenadiers', bad:'Épéistes, Gardiens',
+    good:'Lanciers, Sapeurs', bad:'Épéistes, Gardiens',
     desc:'Éclaireuse des bois. Fragile, mais elle arrose l’ennemi bien avant le contact.'},
-  spear: {name:'Lancier', role:'Allonge', ic:'spear', cost:12, hp:110, dmg:22, range:26, cd:1.3, spd:32, squad:6, armor:.15, r:7, unlock:2, pierce:true,
+  spear: {name:'Lancier', era:'Médiéval', role:'Allonge', cost:12, hp:110, dmg:22, range:26, cd:1.3, spd:32, squad:6, armor:.15, r:7, unlock:2, pierce:true,
     ab:'Transperce', abd:'Ignore l’armure et touche aussi l’ennemi placé derrière sa cible. Brise les charges.',
-    good:'Gardiens, Épéistes', bad:'Archères, Grenadiers',
+    good:'Gardiens, Cavaliers', bad:'Archères, Sapeurs',
     desc:'Lansquenet à la pique interminable. Il tient la ligne et punit les cavaliers téméraires.'},
-  guard: {name:'Gardien', role:'Tank', ic:'shield', cost:30, hp:560, dmg:16, range:10, cd:1.25, spd:21, squad:2, armor:.5, r:11, unlock:5, taunt:80,
+  guard: {name:'Gardien', era:'Médiéval', role:'Tank', cost:30, hp:560, dmg:16, range:10, cd:1.25, spd:21, squad:2, armor:.5, r:11, unlock:5, taunt:80, block:.65, kb:1.4, cleave:14,
     ab:'Rempart', abd:'Attire les ennemis proches, bloque les flèches de face et repousse au bouclier.',
-    good:'Archères, Épéistes', bad:'Lanciers',
+    good:'Archères, Épéistes', bad:'Lanciers, Cyborgs',
     desc:'Colosse en armure de plates. Seul, mais il vaut une escouade entière en défense.'},
-  bomber:{name:'Sapeur', role:'Zone', ic:'bomb', cost:30, hp:75, dmg:34, range:105, minR:30, cd:2.8, spd:26, squad:4, armor:0, r:7, unlock:9, proj:'bomb', aoe:30, kite:34,
+  bomber:{name:'Sapeur', era:'Médiéval', role:'Zone', cost:30, hp:75, dmg:34, range:105, minR:30, cd:2.8, spd:26, squad:4, armor:0, r:7, unlock:9, proj:'bomb', aoe:30, kite:34,
     ab:'Grenade', abd:'Vise le groupe le plus serré. L’explosion blesse et repousse. Inutile à bout portant.',
-    good:'Groupes serrés, Lanciers', bad:'Épéistes, Archères',
-    desc:'Artificier barbu à lunettes. Lent à recharger, dévastateur sur une formation compacte.'}
+    good:'Groupes serrés, Lanciers', bad:'Épéistes, Ninjas',
+    desc:'Artificier barbu à lunettes. Lent à recharger, dévastateur sur une formation compacte.'},
+
+  skel:  {name:'Squelette', era:'Fantastique', role:'Horde', cost:5, hp:45, dmg:10, range:8, cd:.9, spd:34, squad:6, armor:0, r:6, unlock:1, resist:.5,
+    ab:'Os creux', abd:'Les flèches et les balles le traversent à moitié. Pas cher : noyez l’ennemi sous le nombre.',
+    good:'Archères, Fusiliers', bad:'Sapeurs, Samouraïs',
+    desc:'Un tas d’os animé, armé d’une épée rouillée. Seul il ne vaut rien, par cinquante il fait peur.'},
+  goblin:{name:'Gobelin', era:'Fantastique', role:'Kamikaze', cost:6, hp:40, dmg:60, range:4, cd:1, spd:56, squad:6, armor:0, r:5, unlock:2, boom:24,
+    ab:'Tonneau de poudre', abd:'Court vers l’ennemi et explose à son contact, en blessant tout le groupe autour.',
+    good:'Groupes serrés, Tanks lents', bad:'Archères, Mitrailleurs',
+    desc:'Petit, vert et ravi de tout faire sauter, y compris lui-même.'},
+  viking:{name:'Viking', era:'Histoire', role:'Mêlée', cost:16, hp:210, dmg:24, range:9, cd:1, spd:36, squad:4, armor:.25, r:8, unlock:3, block:.35, kb:.6,
+    ab:'Bouclier rond', abd:'Bloque une partie des tirs de face et repousse ceux qu’il frappe à la hache.',
+    good:'Archères, Épéistes', bad:'Lanciers, Samouraïs',
+    desc:'Pillard des mers du Nord, barbe tressée et hache affûtée. Solide et polyvalent.'},
+  legion:{name:'Légionnaire', era:'Histoire', role:'Ligne', cost:14, hp:170, dmg:18, range:10, cd:.9, spd:30, squad:6, armor:.35, r:7, unlock:3, block:.65,
+    ab:'Tortue', abd:'Son grand bouclier bloque la plupart des tirs venus de face. Il frappe vite au glaive.',
+    good:'Archères, Fusiliers', bad:'Sapeurs, Lanciers',
+    desc:'Soldat de Rome, discipliné et lourdement protégé. La ligne idéale face aux tireurs.'},
+  elf:   {name:'Rôdeuse elfe', era:'Fantastique', role:'Tireur', cost:18, hp:70, dmg:13, range:160, cd:.9, spd:36, squad:6, armor:0, r:6, unlock:4, proj:'arrow', kite:30,
+    ab:'Tir elfique', abd:'Tire plus vite et plus loin que l’Archère, puis recule avec grâce.',
+    good:'Mages, Lanciers', bad:'Ninjas, Cavaliers',
+    desc:'Archère des forêts éternelles. Sa portée est la plus longue de toutes les tireuses.'},
+  orc:   {name:'Berserker orc', era:'Fantastique', role:'Furie', cost:16, hp:210, dmg:24, range:9, cd:.9, spd:38, squad:4, armor:.1, r:8, unlock:4, rage:true, cleave:10,
+    ab:'Rage', abd:'Plus il est blessé, plus il frappe fort : jusqu’à deux fois plus à l’agonie. Sa hache touche aussi les voisins.',
+    good:'Squelettes, Épéistes', bad:'Archères, Gardiens',
+    desc:'Une montagne de muscles verts qui ne connaît ni la peur ni la retraite.'},
+  dwarf: {name:'Nain', era:'Fantastique', role:'Rempart', cost:20, hp:240, dmg:22, range:8, cd:1.1, spd:27, squad:4, armor:.4, r:7, unlock:5, stun:.35,
+    ab:'Marteau runique', abd:'Un coup sur trois environ assomme la cible pendant près d’une seconde.',
+    good:'Orcs, Vampires', bad:'Lanciers, Mages',
+    desc:'Petit mais indestructible, caché derrière sa barbe et son armure de forge.'},
+  priest:{name:'Prêtresse', era:'Fantastique', role:'Soin', cost:22, hp:95, dmg:24, range:95, cd:1.3, spd:30, squad:3, armor:0, r:7, unlock:6, proj:'heal', kite:30,
+    ab:'Lumière', abd:'Soigne l’allié blessé le plus proche. Sans blessé, elle frappe l’ennemi d’un rayon sacré.',
+    good:'Armées de mêlée', bad:'Ninjas, Gobelins',
+    desc:'Gardienne du temple. Une ligne de front qu’elle soigne tient deux fois plus longtemps.'},
+  rifle: {name:'Fusilier', era:'Moderne', role:'Tireur', cost:16, hp:85, dmg:20, range:130, cd:1.1, spd:32, squad:6, armor:.05, r:6, unlock:6, proj:'bullet', kite:26,
+    ab:'Feu à volonté', abd:'Ses balles volent droit et vite : impossible de les esquiver.',
+    good:'Archères, Orcs', bad:'Légionnaires, Squelettes',
+    desc:'Soldat du siècle dernier, casque et fusil. Précis, efficace, sans fioritures.'},
+  ninja: {name:'Ninja', era:'Histoire', role:'Assassin', cost:20, hp:95, dmg:30, range:8, cd:.6, spd:62, squad:3, armor:0, r:6, unlock:7, dodge:.4, backline:true,
+    ab:'Ombre', abd:'Contourne la mêlée pour égorger les tireurs et esquive 40 % des coups.',
+    good:'Archères, Mages, Tireurs', bad:'Gardiens, Nains',
+    desc:'Personne ne le voit venir. Lâchez-le sur les flancs, il ira tout seul vers l’arrière.'},
+  samurai:{name:'Samouraï', era:'Histoire', role:'Duelliste', cost:26, hp:250, dmg:36, range:12, cd:1.1, spd:38, squad:3, armor:.2, r:8, unlock:7, cleave:16,
+    ab:'Iaijutsu', abd:'Chaque coup de katana tranche en arc et blesse tous les ennemis devant lui.',
+    good:'Squelettes, Vikings, Hordes', bad:'Fusiliers, Lance-flammes',
+    desc:'Guerrier d’honneur en armure laquée. Une lame, un geste, trois ennemis à terre.'},
+  mage:  {name:'Pyromancien', era:'Fantastique', role:'Magie', cost:28, hp:80, dmg:30, range:120, cd:2.2, spd:28, squad:3, armor:0, r:7, unlock:8, proj:'fire', aoe:22, burn:8, kite:30,
+    ab:'Boule de feu', abd:'Une boule de feu explose sur la cible et enflamme tout le groupe pendant 3 s.',
+    good:'Groupes serrés, Myconides', bad:'Ninjas, Cavaliers',
+    desc:'Vieux sage au chapeau pointu. Sa barbe a déjà brûlé deux fois.'},
+  mush:  {name:'Myconide', era:'Invention', role:'Poison', cost:14, hp:170, dmg:8, range:8, cd:1, spd:24, squad:4, armor:0, r:7, unlock:8, spores:true,
+    ab:'Spores', abd:'Libère toutes les 3 s un nuage toxique qui empoisonne les ennemis autour. Explose en spores à sa mort.',
+    good:'Hordes, Squelettes, Gobelins', bad:'Pyromanciens, Tireurs',
+    desc:'Un champignon qui marche. Lent, mou, et terriblement contagieux.'},
+  vampire:{name:'Vampire', era:'Fantastique', role:'Prédateur', cost:30, hp:220, dmg:26, range:8, cd:.7, spd:48, squad:2, armor:.1, r:7, unlock:9, steal:.6,
+    ab:'Morsure', abd:'Récupère 60 % des dégâts qu’il inflige. Il se soigne en combattant.',
+    good:'Épéistes, Fusiliers', bad:'Prêtresses, Paladins',
+    desc:'Noble de la nuit aux griffes acérées. Plus le combat dure, plus il est en forme.'},
+  troll: {name:'Troll', era:'Fantastique', role:'Géant', cost:60, hp:1150, dmg:46, range:12, cd:1.8, spd:20, squad:1, armor:.15, r:13, unlock:10, regen:14, cleave:18, kb:1.5,
+    ab:'Régénération', abd:'Reprend 14 PV par seconde et balaie tout autour de lui à la massue.',
+    good:'Hordes, Épéistes', bad:'Pyromanciens, Lance-flammes',
+    desc:'Géant des cavernes au gros nez. Seul le feu l’empêche vraiment de guérir.'},
+  shaman:{name:'Chaman', era:'Fantastique', role:'Foudre', cost:30, hp:110, dmg:24, range:115, cd:2, spd:28, squad:2, armor:0, r:7, unlock:10, proj:'chain', kite:30,
+    ab:'Arc électrique', abd:'Un éclair frappe sa cible puis rebondit sur 3 ennemis proches.',
+    good:'Hordes, Drones', bad:'Golems, Ninjas',
+    desc:'Il parle aux orages. Son bâton crépite d’une foudre qui saute de soldat en soldat.'},
+  knight:{name:'Cavalier', era:'Médiéval', role:'Cavalerie', cost:45, hp:500, dmg:34, range:12, cd:1.2, spd:54, squad:2, armor:.35, r:12, unlock:11, charge:3, kb:1.5,
+    ab:'Charge à la lance', abd:'Galope sur l’ennemi : le premier coup de lance fait trois fois plus de dégâts et renverse.',
+    good:'Archères, Tireurs, Mages', bad:'Lanciers, Légionnaires',
+    desc:'Chevalier en armure sur son destrier caparaçonné. Le plus rapide des soldats lourds.'},
+  gunner:{name:'Mitrailleur', era:'Moderne', role:'Barrage', cost:30, hp:140, dmg:7, range:115, cd:2, spd:24, squad:2, armor:.1, r:8, unlock:11, proj:'bullet', burst:6,
+    ab:'Rafale', abd:'Lâche une rafale de 6 balles qui balaie les rangs ennemis.',
+    good:'Hordes, Gobelins, Squelettes', bad:'Légionnaires, Golems',
+    desc:'Un bandana, une mitrailleuse et beaucoup trop de munitions.'},
+  necro: {name:'Nécromancien', era:'Fantastique', role:'Invocateur', cost:34, hp:110, dmg:20, range:115, cd:1.8, spd:26, squad:2, armor:0, r:7, unlock:12, proj:'shadow', raise:true, kite:30,
+    ab:'Armée des morts', abd:'Les ennemis qui meurent près de lui se relèvent en squelettes pour son camp.',
+    good:'Grosses mêlées, Hordes', bad:'Prêtresses, Ninjas',
+    desc:'Sorcier encapuchonné au bâton crâne. Chaque mort ennemi grossit ses rangs.'},
+  flamer:{name:'Lance-flammes', era:'Moderne', role:'Brasier', cost:28, hp:170, dmg:9, range:38, cd:.18, spd:28, squad:2, armor:.15, r:8, unlock:12, proj:'cone', burn:7,
+    ab:'Brasier', abd:'Crache un cône de feu continu qui enflamme tout ce qu’il touche.',
+    good:'Trolls, Myconides, Hordes', bad:'Tireurs, Sapeurs',
+    desc:'Masque à gaz, réservoirs sur le dos : rien ne repousse là où il passe.'},
+  paladin:{name:'Paladin', era:'Fantastique', role:'Saint', cost:40, hp:430, dmg:26, range:10, cd:1.2, spd:30, squad:2, armor:.35, r:9, unlock:13, aura:16,
+    ab:'Aura sacrée', abd:'Toutes les 2 s, soigne de 16 PV les alliés autour de lui.',
+    good:'Vampires, Nécromanciens', bad:'Lanciers, Cyborgs',
+    desc:'Chevalier sacré au heaume ailé. Le cœur d’une ligne de front qui ne cède pas.'},
+  sniper:{name:'Tireur d’élite', era:'Moderne', role:'Précision', cost:34, hp:60, dmg:110, range:230, cd:3.4, spd:26, squad:2, armor:0, r:6, unlock:13, proj:'bullet', snipe:true, kite:40,
+    ab:'Tir d’élite', abd:'Vise toujours l’ennemi le plus robuste à portée, de l’autre bout du champ.',
+    good:'Gardiens, Trolls, Cavaliers', bad:'Ninjas, Gobelins',
+    desc:'Caché sous sa tenue de camouflage. Un tir toutes les trois secondes, mais quel tir.'},
+  cyborg:{name:'Cyborg', era:'Futur', role:'Laser', cost:36, hp:270, dmg:28, range:140, cd:1.4, spd:30, squad:3, armor:.3, r:7, unlock:14, proj:'laser', pierce:true,
+    ab:'Rayon laser', abd:'Un rayon instantané qui ignore l’armure et traverse toute la ligne.',
+    good:'Gardiens, Légionnaires', bad:'Ninjas, Lames plasma',
+    desc:'Mi-homme, mi-machine, son œil rouge ne rate jamais rien.'},
+  drone: {name:'Drone', era:'Futur', role:'Aérien', cost:22, hp:70, dmg:9, range:95, cd:.45, spd:50, squad:3, armor:0, r:6, unlock:14, proj:'bolt', fly:true,
+    ab:'Vol', abd:'Survole la mêlée sans être bloqué et mitraille avec de petits lasers.',
+    good:'Mêlée lente, Golems', bad:'Chamans, Mitrailleurs',
+    desc:'Quadricoptère de combat. Il passe au-dessus de tout le monde.'},
+  minotaur:{name:'Minotaure', era:'Fantastique', role:'Bélier', cost:55, hp:880, dmg:50, range:12, cd:1.6, spd:30, squad:1, armor:.2, r:13, unlock:15, charge:2.5, kb:2, cleave:16,
+    ab:'Coup de cornes', abd:'Charge tête baissée : le premier coup fait 2,5 fois plus mal et envoie valser tout le monde.',
+    good:'Lignes serrées, Légionnaires', bad:'Lanciers, Tireurs d’élite',
+    desc:'Mi-homme, mi-taureau, armé d’une hache double plus grande que lui.'},
+  saber: {name:'Lame plasma', era:'Futur', role:'Duelliste', cost:34, hp:230, dmg:34, range:10, cd:.7, spd:46, squad:3, armor:.15, r:7, unlock:15, deflect:.5, charge:2,
+    ab:'Renvoi', abd:'Dévie la moitié des tirs avec sa lame d’énergie et bondit sur sa cible.',
+    good:'Fusiliers, Cyborgs, Archères', bad:'Trolls, Minotaures',
+    desc:'Chevalier des étoiles au sabre lumineux aux couleurs de son camp.'},
+  golem: {name:'Golem', era:'Fantastique', role:'Colosse', cost:80, hp:2100, dmg:40, range:12, cd:2.2, spd:16, squad:1, armor:.55, r:14, unlock:16, resist:.3, cleave:22, kb:1.8,
+    ab:'Peau de pierre', abd:'Les tirs ne lui font presque rien et ses poings secouent tout autour de lui.',
+    good:'Archères, Fusiliers, Drones', bad:'Lanciers, Cyborgs',
+    desc:'Un rocher vivant animé par une rune lumineuse. Lent, mais impossible à arrêter.'},
+  dragon:{name:'Dragonnet', era:'Fantastique', role:'Aérien', cost:50, hp:330, dmg:9, range:42, cd:.22, spd:38, squad:1, armor:.1, r:10, unlock:17, proj:'cone', burn:6, fly:true,
+    ab:'Souffle de feu', abd:'Vole au-dessus des lignes et crache un torrent de flammes.',
+    good:'Mêlée, Trolls, Myconides', bad:'Tireurs d’élite, Chamans',
+    desc:'Un jeune dragon aux écailles de son camp. Déjà assez grand pour tout brûler.'},
+  tank:  {name:'Char d’assaut', era:'Moderne', role:'Blindé', cost:140, hp:2700, dmg:90, range:150, minR:26, cd:3.2, spd:15, squad:1, armor:.6, r:16, unlock:18, proj:'shell', aoe:32,
+    ab:'Obus', abd:'Un obus explosif à longue portée. Blindage énorme, mais aveugle de tout près.',
+    good:'Tout ce qui est serré', bad:'Gobelins, Ninjas, Cyborgs',
+    desc:'Quarante tonnes d’acier aux couleurs de son camp. Le roi du champ de bataille.'},
+  mech:  {name:'Méca', era:'Futur', role:'Titan', cost:160, hp:3100, dmg:46, range:165, minR:24, cd:2.6, spd:17, squad:1, armor:.5, r:18, unlock:19, proj:'rocket', aoe:26, burst:3,
+    ab:'Salve de roquettes', abd:'Tire 3 roquettes à tête chercheuse qui explosent sur l’ennemi.',
+    good:'Hordes, Chars', bad:'Cyborgs, Ninjas',
+    desc:'Robot de combat piloté, haut comme une maison. La fin de toutes les guerres.'}
 };
 const TYPES = Object.keys(UT);
 const HPM = l => Math.pow(1.27, l - 1), DMGM = l => Math.pow(1.22, l - 1);
@@ -45,13 +169,15 @@ const lvLabel = i => `${Math.ceil(i / 5)}-${(i - 1) % 5 + 1}`;
 
 /* ---------- SAUVEGARDE ---------- */
 const defSave = () => ({v:2, gold:120, sound:true, cleared:0, stars:{}, lastFree:0,
-  cards:{sword:{lvl:1,n:0,u:true},archer:{lvl:1,n:0,u:true},spear:{lvl:1,n:0,u:false},guard:{lvl:1,n:0,u:false},bomber:{lvl:1,n:0,u:false}}});
+  cards:Object.fromEntries(TYPES.map(t => [t, {lvl:1, n:0, u:UT[t].unlock === 0}]))});
 let SAV;
 function load(){
   let d = null; try { d = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch(e) {}
   SAV = Object.assign(defSave(), d || {});
   const dc = defSave().cards;
   for (const k in dc) SAV.cards[k] = Object.assign(dc[k], (d && d.cards && d.cards[k]) || {});
+  // les nouveaux soldats déjà mérités par la campagne sont débloqués d'office
+  for (const t of TYPES) if (UT[t].unlock && UT[t].unlock <= SAV.cleared) SAV.cards[t].u = true;
 }
 function save(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAV)); } catch(e) {} }
 load();
@@ -99,6 +225,15 @@ function sfx(n){
     case 'lose': [392, 330, 262, 196].forEach((f, i) => tone(f, 0, .22, 'triangle', .09, i * .16)); break;
     case 'up': [440, 554, 659, 880, 1108].forEach((f, i) => tone(f, 0, .12, 'square', .06, i * .07)); break;
     case 'err': tone(160, 120, .12, 'square', .06); break;
+    case 'gun': noise(.05, .2, 3500); tone(400, 120, .05, 'square', .04); break;
+    case 'laser': tone(1800, 300, .14, 'sawtooth', .04); break;
+    case 'zap': noise(.12, .14, 6000); tone(900, 1800, .1, 'square', .04); break;
+    case 'flame': noise(.12, .07, 1200); break;
+    case 'magic': tone(600, 1200, .18, 'triangle', .06); break;
+    case 'heal': tone(880, 0, .08, 'sine', .05); tone(1320, 0, .12, 'sine', .04, .06); break;
+    case 'rocket': noise(.25, .12, 1500); tone(220, 500, .2, 'sawtooth', .03); break;
+    case 'cannon': noise(.3, .4, 500); tone(90, 40, .3, 'sine', .3); break;
+    case 'raise': tone(140, 280, .3, 'triangle', .07); break;
   } } catch(e) {}
 }
 window.addEventListener('pointerdown', () => ac(), {once:true});
@@ -127,7 +262,7 @@ function decorate(root){
   });
 }
 
-/* ---------- DESSIN DES SOLDATS (espace "art", 1 px = 1 pixel du sprite) ---------- */
+/* ---------- DESSIN DES SOLDATS (le contexte est en pixels du monde ; les sprites sont en double résolution) ---------- */
 const shadowCache = {};
 function pixEllipse(rx, ry, col){
   const k = rx + '_' + ry + col; if (shadowCache[k]) return shadowCache[k];
@@ -136,66 +271,76 @@ function pixEllipse(rx, ry, col){
   for (let j = -ry; j <= ry; j++) for (let i = -rx; i <= rx; i++) if ((i * i) / (rx * rx + .5) + (j * j) / (ry * ry + .5) <= 1) x.fillRect(i + rx, j + ry, 1, 1);
   return shadowCache[k] = c;
 }
+// hauteur de vol (en pixels du monde) des unités aériennes
+const flyH = (u, t) => UNITS_ART[u.type].fly ? 9 + Math.sin(t * 4 + u.id) * 1.5 : 0;
+const IDLE_ANG = {swing:.3, slash:.45, heavy:.5, stab:.9, cast:.12, couch:1.25, thrust:.18};
 function drawUnitAt(c, u, X, Y, t, alpha){
-  const x = Math.round(X), y = Math.round(Y), A = UNITS_ART[u.type];
+  const A = UNITS_ART[u.type], sc = u.sc || 1;
   c.save(); if (alpha != null) c.globalAlpha = alpha;
-  const sc = u.sc || 1, sw = (u.type === 'guard' ? 9 : 7) * sc, sh = pixEllipse(sw, 2 * sc, 'rgba(0,0,0,.3)');
-  c.drawImage(sh, x - sw, y - 2 * sc);
+  c.translate(Math.round(X * HR) / HR, Math.round(Y * HR) / HR); c.scale(1 / HR, 1 / HR);
+  const sw = Math.round(A.sw * sc), sh = pixEllipse(sw, Math.round(4 * sc), 'rgba(0,0,0,.3)');
+  c.drawImage(sh, -sw, -Math.round(4 * sc));
   if (u.lvl >= 5 || sc > 1) {
     const p = Math.floor((t * 6 + u.id) % 4), col = sc > 1 ? 'rgba(255,90,60,.3)' : 'rgba(190,110,255,.28)';
-    const au = pixEllipse((10 + (p > 1 ? 1 : 0)) * sc, 4 * sc, col); c.drawImage(au, x - au.width / 2 | 0, y - 4 * sc);
+    const au = pixEllipse(Math.round((sw + 5 + (p > 1 ? 2 : 0))), Math.round(8 * sc), col); c.drawImage(au, -au.width / 2 | 0, -Math.round(8 * sc));
   }
-  c.translate(x, y);
+  c.translate(0, -Math.round(flyH(u, t) * HR * sc));
   c.scale((u.face || 1) * sc, sc);
-  const p = u.atk > 0 ? 1 - u.atk : 0;
-  const lean = u.atk > 0 ? Math.round(Math.sin(p * Math.PI) * 1.5) : 0;
+  const p = u.atk > 0 ? 1 - u.atk : 0, sp = Math.sin(p * Math.PI);
+  const body0 = A.anim === 'recoil' ? -Math.round(sp * 2) : Math.round(sp * (A.anim === 'slam' || A.anim === 'claw' ? 5 : 3));
   const bob = (!u.moving && Math.sin(t * 3 + u.id * 1.7) > .55) ? -1 : 0;
-  const frame = u.moving ? (Math.floor(u.walk * (u.charging ? 14 : 8)) % 2) : 0;
+  const frame = A.fly ? Math.floor(t * 10 + u.id) % 4 : u.moving ? WALK_SEQ[Math.floor(u.walk * (u.charging ? 16 : 9)) % 4] : 0;
   const fl = u.flash > 0;
-  const body = bodySprite(u.type, u.lvl, u.team, frame, fl), H = body.height;
-  const bx = -12 + lean, by = -H + bob; // origine du sprite (pieds au centre)
-  const hand = A.hand, hx = bx + 1 + hand[0], hy = by + SPR_TOP + hand[1];
+  const body = bodySprite(u.type, u.lvl, u.team, frame, fl);
+  const bx = -A.w / 2 + body0, by = -(A.h - 1) + bob;
+  const hx = bx + A.hand[0], hy = by + A.hand[1];
   const dw = (name, wx, wy, ang) => {
     const s = weaponSprite(name, u.lvl, u.team, fl), W = WEAP[name];
     c.save(); c.translate(Math.round(wx), Math.round(wy)); if (ang) c.rotate(ang);
-    c.drawImage(s, -Math.round(W.x), -Math.round(W.y)); c.restore();
+    c.drawImage(s, -W.g[0], -W.g[1]); c.restore();
   };
-  // armes derrière le corps
-  if (u.type === 'guard') {
-    const h2 = A.hand2, mx = bx + 1 + h2[0], my = by + SPR_TOP + h2[1];
-    dw('mace', mx, my, u.atk > 0 ? -2.2 + p * 3.2 : -.5);
-  }
-  if (u.type === 'spear' && !(u.atk > 0)) dw('spear', hx, hy, .18);
+  const e = p < .45 ? p / .45 : 1, idle = IDLE_ANG[A.anim] || 0;
+  // armes tenues derrière le corps
+  if (A.wp2 === 'mace') dw('mace', bx + A.hand2[0], by + A.hand2[1], u.atk > 0 ? -2.2 + p * 3.2 : -.5);
+  if (A.anim === 'thrust' && !(u.atk > 0)) dw(A.wp, hx, hy, idle);
   c.drawImage(body, bx, by);
-  switch (u.type) {
-    case 'sword': {
-      const e = p < .45 ? p / .45 : 1;
-      dw('sword', hx, hy, u.atk > 0 ? -1.3 + e * 3 : (u.charging ? 1.2 : .3)); break;
-    }
-    case 'spear': if (u.atk > 0) dw('spear', hx + Math.round(Math.sin(p * Math.PI) * 9), hy - 2, Math.PI / 2 - .08); break;
-    case 'archer': {
-      const a = clamp(u.aim || 0, -1.1, .9) - .5, back = u.atk > 0 ? Math.round(Math.sin(p * Math.PI) * 2) : 0;
-      dw('bow', hx - back, hy - 3, a + .5);
+  if (A.wp) switch (A.anim) {
+    case 'swing': dw(A.wp, hx, hy, u.atk > 0 ? -1.3 + e * 3 : (u.charging ? 1.2 : idle)); break;
+    case 'slash': dw(A.wp, hx, hy, u.atk > 0 ? -1.7 + e * 3.6 : (u.charging ? 1.3 : idle)); break;
+    case 'heavy': dw(A.wp, hx, hy, u.atk > 0 ? (p < .35 ? idle - p / .35 * 2.8 : -2.3 + Math.min(1, (p - .35) / .3) * 3.9) : idle); break;
+    case 'stab': dw(A.wp, hx + Math.round(sp * 6), hy, u.atk > 0 ? 1.5 : idle); break;
+    case 'thrust': if (u.atk > 0) dw(A.wp, hx + Math.round(sp * 18), hy - 4, Math.PI / 2 - .08); break;
+    case 'couch': dw(A.wp, hx + Math.round(sp * 14), hy, u.atk > 0 || u.charging ? 1.45 : idle); break;
+    case 'bow': dw(A.wp, hx - Math.round(sp * 4), hy, clamp(u.aim || 0, -1.1, .9) * .6); break;
+    case 'gun': case 'spray': {
+      const ang = clamp(u.aim || 0, -.7, .7), W = WEAP[A.wp], rc = A.anim === 'gun' && p < .4 ? 3 : 0;
+      dw(A.wp, hx - rc, hy, ang);
+      if (A.anim === 'gun' && u.atk > 0 && p < .25) {
+        const tx = hx - rc + Math.cos(ang) * (W.tip[0] - W.g[0]) - Math.sin(ang) * (W.tip[1] - W.g[1]), ty = hy + Math.sin(ang) * (W.tip[0] - W.g[0]) + Math.cos(ang) * (W.tip[1] - W.g[1]);
+        c.fillStyle = '#fff6c0'; c.fillRect(Math.round(tx), Math.round(ty) - 2, 4, 4); c.fillStyle = '#ffb432'; c.fillRect(Math.round(tx) + 4, Math.round(ty) - 1, 3, 2); c.fillRect(Math.round(tx) + 1, Math.round(ty) - 4, 2, 2); c.fillRect(Math.round(tx) + 1, Math.round(ty) + 2, 2, 2);
+      }
       break;
     }
-    case 'bomber':
-      if (u.cd < u.cdMax * .6 && !(u.atk > 0)) dw('bomb', hx, hy - 3, 0);
-      else if (u.atk > 0 && p < .3) dw('bomb', hx - 4, hy - 9, 0);
+    case 'cast': dw(A.wp, hx, hy - Math.round(sp * 8), idle - sp * .5); break;
+    case 'throw':
+      if (u.cd < u.cdMax * .6 && !(u.atk > 0)) dw(A.wp, hx, hy - 6, 0);
+      else if (u.atk > 0 && p < .3) dw(A.wp, hx - 8, hy - 18, 0);
       break;
-    case 'guard': {
-      const off = u.atk > 0 ? Math.round(Math.sin(p * Math.PI) * 5) : 0;
-      dw('shield', hx - 3 + off, hy + 2, 0); break;
-    }
+    case 'bash': dw(A.wp, hx - 6 + Math.round(sp * 10), hy + 4, 0); break;
+    default: dw(A.wp, hx, hy, 0);
   }
+  if (A.wp2 && A.wp2 !== 'mace') dw(A.wp2, bx + A.hand2[0] + Math.round(sp * 2), by + A.hand2[1], 0);
   c.restore();
 }
-// portrait net, pré-agrandi (pas de flou sur iOS)
+// portrait net, pré-agrandi (pas de flou sur iOS) ; les très grands soldats sont réduits
 function portrait(type, lvl, team = 'blue', s = 2, att){
-  const A = UNITS_ART[type], H = unitH(type) + 6, W = 34;
-  const c = document.createElement('canvas'); c.width = W * s * DPR; c.height = H * s * DPR;
-  c.style.width = W * s + 'px'; c.style.height = H * s + 'px';
-  const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.scale(s * DPR, s * DPR);
-  drawUnitAt(x, Object.assign({type, lvl, team, face:1, atk:0, moving:false, walk:0, flash:0, id:1, cd:0, cdMax:1, aim:-.2}, att || {}), 15, H - 3, 0);
+  const A = UNITS_ART[type], fit = Math.min(1, 62 / A.h, 70 / A.w);
+  const k = Math.max(1, Math.round(s * fit * DPR / HR)); // pixels d'écran par pixel de sprite
+  const W = Math.ceil(A.w / HR) + 8, H = Math.ceil((A.h + (A.fly ? 20 : 0)) / HR) + 5;
+  const c = document.createElement('canvas'); c.width = W * HR * k; c.height = H * HR * k;
+  c.style.width = c.width / DPR + 'px'; c.style.height = c.height / DPR + 'px';
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.scale(HR * k, HR * k);
+  drawUnitAt(x, Object.assign({type, lvl, team, face:1, atk:0, moving:false, walk:0, flash:0, id:1, cd:0, cdMax:1, aim:-.2}, att || {}), W / 2, H - 2.5, 0);
   return c;
 }
 
@@ -286,7 +431,7 @@ function sizeScene(){
   const r = scene.cv.getBoundingClientRect(); if (r.width < 10) return;
   scene.cv.width = Math.round(r.width * DPR); scene.cv.height = Math.round(r.height * DPR);
   scene.W = Math.ceil(r.width / scene.S); scene.H = Math.ceil(r.height / scene.S);
-  scene.art.width = scene.W; scene.art.height = scene.H;
+  scene.art.width = scene.W * HR; scene.art.height = scene.H * HR;
   const mb = $('#menu-btns').getBoundingClientRect();
   scene.ground = Math.round((mb.top - r.top) / scene.S) - 16;
   scene.bg = buildSceneBg(scene.W, scene.H, scene.ground);
@@ -334,7 +479,7 @@ function newMarcher(x){
 function drawScene(dt, t){
   if (!scene.bg) return;
   const a = scene.art.getContext('2d'); a.imageSmoothingEnabled = false;
-  a.drawImage(scene.bg, 0, 0);
+  a.setTransform(HR, 0, 0, HR, 0, 0); a.drawImage(scene.bg, 0, 0);
   for (const m of scene.list) {
     m.x += m.spd * dt; m.walk += dt * .8;
     if (m.x > scene.W + 20 || m.x < -20) Object.assign(m, newMarcher(m.spd > 0 ? -18 : scene.W + 18));

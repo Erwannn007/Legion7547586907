@@ -36,7 +36,7 @@ function openUnit(t){
   const hp = l => Math.round(U.hp * HPM(l)), dm = l => Math.round(U.dmg * DMGM(l));
   const need = UP_N[L], cost = UP_G[L], ok = !max && c.n >= need && SAV.gold >= cost;
   const nl = max ? L : L + 1;
-  openModal(`<div class="mc"><div class="kick">${U.role.toUpperCase()} · RANG ${LVL_NAMES[L].toUpperCase()}</div><h3 style="margin-top:0">${U.name}</h3>
+  openModal(`<div class="mc"><div class="kick">${U.era.toUpperCase()} · ${U.role.toUpperCase()} · RANG ${LVL_NAMES[L].toUpperCase()}</div><h3 style="margin-top:0">${U.name}</h3>
     <div class="evo" id="evo"></div>
     <p style="text-align:center;margin:2px 0">${U.desc}</p>
     <div class="ability"><b>${U.ab}</b>${U.abd}</div>
@@ -97,7 +97,7 @@ $('#b-help').onclick = () => openModal(`<div class="help"><h3>Comment jouer</h3>
   <h4>Les étoiles</h4><p>Gagner donne 1 étoile. Gagner en dépensant peu en donne 2 ou 3 : les seuils sont les traits blancs sur la jauge de budget. Votre armée est mémorisée, vous pouvez la retoucher et réessayer.</p>
   <h4>Les boss</h4><p>Chaque chapitre se termine par un Seigneur de guerre géant : très résistant, il balaie tout autour de lui.</p>
   <h4>Caméra</h4><p>Pincez le terrain pour zoomer, glissez pour vous déplacer, touchez deux fois pour revoir tout le champ de bataille.</p>
-  <h4>Cinq soldats, cinq styles</h4><p>L’Épéiste charge les lignes arrière. L’Archère tire en cloche et recule. Le Lancier transperce les armures et brise les charges. Le Gardien attire les coups et bloque les flèches. Le Sapeur fait exploser les groupes serrés.</p>
+  <h4>35 soldats de toutes les époques</h4><p>Chevaliers et archères, elfes, orcs, trolls et nécromanciens, samouraïs et vikings, fusiliers et chars d’assaut, cyborgs, drones et mécas : chaque soldat a sa capacité (soins, poison, foudre en chaîne, vol, laser, invocation…). Touchez une carte dans Armée pour lire ses forces et faiblesses. La campagne en débloque de nouveaux à presque chaque victoire ; le bac à sable les offre tous.</p>
   <h4>Progression</h4><p>Les victoires rapportent pièces et cartes. Dans Armée, montez chaque soldat jusqu’au niveau 5 : cuir, fer, acier, or, puis mythique. Un soldat amélioré coûte toujours le même prix, mais vaut beaucoup plus.</p>
   <h4>Bac à sable</h4><p>Placez jusqu’à ${MAXU} soldats des deux camps à tous les niveaux, puis lancez la bataille. Le pinceau pose 1, 6 ou 24 soldats en formation, le dé génère deux armées au hasard, et le bouton retour rejoue la même bataille.</p>
   <div class="mbtns"><button class="pb brass" id="m-x">Compris</button></div></div>`, m => m.querySelector('#m-x').onclick = closeModal);
@@ -105,7 +105,7 @@ $('#b-set').onclick = function openSet(){
   openModal(`<h3>Réglages</h3>
     <div class="toggle"><span>Effets sonores</span><button class="pb sm ${SAV.sound ? 'green' : ''}" id="m-snd" style="width:96px">${ic(SAV.sound ? 'sound' : 'mute', 2)}${SAV.sound ? 'Oui' : 'Non'}</button></div>
     <div class="mbtns"><button class="pb red" id="m-rst">Effacer la progression</button><button class="pb ghost" id="m-x">Fermer</button></div>
-    <p style="text-align:center;font-size:14px;color:var(--mut);margin-top:12px">Légion Pixel · v3.0 · sauvegarde locale</p>`, m => {
+    <p style="text-align:center;font-size:14px;color:var(--mut);margin-top:12px">Légion Pixel · v4.0 · sauvegarde locale</p>`, m => {
     m.querySelector('#m-snd').onclick = () => { SAV.sound = !SAV.sound; save(); openSet(); sfx('click'); };
     m.querySelector('#m-rst').onclick = () => confirmBox('Tout effacer ?', 'Pièces, cartes, niveaux et étoiles seront perdus définitivement.', 'Effacer', () => {
       localStorage.removeItem(SAVE_KEY); SAV = defSave(); save(); refreshGold(); updateHome(); scene.list = []; sizeScene();

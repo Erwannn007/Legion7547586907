@@ -15,58 +15,58 @@ const LEVELS = [
     b:[['sword', 10, .25, 0, 5], ['sword', 10, .75, 0, 5], ['archer', 10, .5, 2, 5]]},
   {n:'Embuscade', lv:1, d:'L’ennemi a caché des troupes sur ses flancs.',
     h:'Ne mettez pas tout au centre : gardez des soldats sur les côtés pour ne pas être encerclé.',
-    b:[['sword', 12, .12, 0, 3], ['sword', 12, .88, 0, 3], ['spear', 8, .5, 0, 4], ['archer', 12, .5, 2, 6]]},
+    b:[['sword', 12, .12, 0, 3], ['sword', 12, .88, 0, 3], ['goblin', 8, .5, 0, 8], ['archer', 12, .5, 2, 6]]},
   {n:'Le Seigneur des Plaines', lv:1, d:'Un Seigneur de guerre géant mène l’armée des plaines.',
     h:'Le Seigneur encaisse énormément et balaie tout autour de lui. Les Lanciers ignorent son armure : entourez-le.',
-    b:[['lord', 1, .5, 1, 1, 2], ['sword', 10, .25, 0, 5], ['sword', 10, .75, 0, 5], ['archer', 14, .5, 2, 7]]},
+    b:[['lord', 1, .5, 1, 1, 2], ['sword', 10, .25, 0, 5], ['sword', 10, .75, 0, 5], ['skel', 12, .5, 0, 6], ['archer', 14, .5, 2, 7]]},
 
   {n:'Le mur de lances', lv:2, d:'Un mur de piques sur toute la largeur. Le Gardien rejoint votre armée.',
     h:'Les charges s’y brisent. Arrosez-le d’archères et faites tenir la ligne par un Gardien, qui attire les coups.',
-    b:[['spear', 24, .5, 0, 12], ['archer', 10, .5, 2, 10]]},
+    b:[['spear', 24, .5, 0, 12], ['elf', 10, .5, 2, 10]]},
   {n:'Les fantômes de la forêt', lv:2, d:'Des dizaines d’archères cachées dans la brume.',
     h:'Le Gardien bloque les flèches qui arrivent de face. Placez-en devant vos troupes.',
-    b:[['sword', 8, .5, 0, 8], ['archer', 14, .2, 1, 7], ['archer', 14, .8, 1, 7], ['archer', 10, .5, 2, 5]]},
+    b:[['viking', 8, .5, 0, 8], ['elf', 14, .2, 1, 7], ['elf', 14, .8, 1, 7], ['archer', 10, .5, 2, 5]]},
   {n:'Bouclier contre bouclier', lv:2, d:'L’ennemi avance derrière ses propres Gardiens.',
     h:'Les Gardiens résistent à presque tout, sauf aux Lanciers qui ignorent leur armure.',
-    b:[['guard', 4, .5, 0, 4], ['spear', 16, .5, 1, 8], ['archer', 14, .5, 2, 7]]},
+    b:[['guard', 4, .5, 0, 4], ['legion', 12, .5, 1, 6], ['spear', 12, .5, 1, 6], ['archer', 14, .5, 2, 7]]},
   {n:'La horde', lv:2, d:'Une marée d’épéistes déferle sur la forêt.',
     h:'Tenez une ligne continue de Lanciers appuyée par des Gardiens : une horde éparpillée se fait découper.',
-    b:[['sword', 18, .18, 0, 6], ['sword', 18, .5, 0, 6], ['sword', 18, .82, 0, 6]]},
+    b:[['orc', 12, .18, 0, 6], ['skel', 30, .5, 0, 10], ['orc', 12, .82, 0, 6], ['goblin', 12, .5, 1, 12]]},
   {n:'Le Roi Sylvain', lv:2, d:'Le roi de la forêt défend son trône. Vos Sapeurs sont arrivés.',
     h:'Les Sapeurs font exploser les groupes serrés : idéal contre l’escorte du roi. Gardez-les loin du Seigneur.',
-    b:[['lord', 1, .5, 1, 1, 3], ['guard', 4, .5, 0, 4], ['spear', 12, .18, 0, 6], ['spear', 12, .82, 0, 6], ['archer', 18, .5, 2, 9]]},
+    b:[['lord', 1, .5, 1, 1, 3], ['guard', 4, .5, 0, 4], ['dwarf', 8, .18, 0, 4], ['dwarf', 8, .82, 0, 4], ['priest', 3, .5, 1, 3], ['elf', 18, .5, 2, 9]]},
 
   {n:'Artillerie', lv:3, d:'Des Sapeurs pilonnent depuis l’arrière des dunes.',
     h:'Les explosions punissent les troupes serrées : étalez vos soldats en lignes fines et foncez sur les Sapeurs.',
-    b:[['guard', 4, .5, 0, 4], ['sword', 16, .5, 0, 8], ['bomber', 10, .5, 2, 5]]},
+    b:[['guard', 4, .5, 0, 4], ['viking', 12, .5, 0, 6], ['bomber', 10, .5, 2, 5]]},
   {n:'Tempête de sable', lv:3, d:'Une armée de tireurs vous attend dans les dunes.',
     h:'Avancez vite : des Épéistes en Charge atteignent l’arrière avant que la pluie de flèches ne fasse trop de dégâts.',
-    b:[['spear', 16, .5, 0, 8], ['bomber', 6, .5, 1, 6], ['archer', 16, .25, 2, 8], ['archer', 16, .75, 2, 8]]},
+    b:[['spear', 16, .5, 0, 8], ['bomber', 6, .5, 1, 6], ['rifle', 16, .25, 2, 8], ['archer', 16, .75, 2, 8]]},
   {n:'Le carré', lv:3, d:'Une formation compacte, hérissée de piques.',
     h:'Un groupe aussi serré est le rêve d’un Sapeur.',
-    b:[['spear', 24, .5, 0, 8], ['guard', 6, .5, 1, 6], ['archer', 18, .5, 2, 9]]},
+    b:[['legion', 24, .5, 0, 8], ['guard', 6, .5, 1, 6], ['archer', 18, .5, 2, 9]]},
   {n:'Double front', lv:3, d:'Deux colonnes avancent sur vos flancs.',
     h:'Gardez le centre léger et doublez vos défenses sur les côtés.',
-    b:[['sword', 24, .18, 0, 6], ['sword', 24, .82, 0, 6], ['archer', 12, .5, 1, 6], ['bomber', 8, .5, 2, 4]]},
+    b:[['samurai', 9, .18, 0, 3], ['ninja', 9, .82, 0, 3], ['sword', 12, .5, 0, 6], ['archer', 12, .5, 1, 6], ['mage', 6, .5, 2, 6]]},
   {n:'Le Sultan des Dunes', lv:3, d:'Le maître des sables et ses artificiers.',
     h:'Ne groupez pas vos troupes face aux Sapeurs, et gardez de quoi achever le Seigneur.',
-    b:[['lord', 1, .5, 1, 1, 4], ['spear', 20, .5, 0, 10], ['bomber', 4, .18, 1, 4], ['bomber', 4, .82, 1, 4], ['archer', 20, .5, 2, 10]]},
+    b:[['lord', 1, .5, 1, 1, 4], ['troll', 1, .5, 0, 1], ['spear', 20, .5, 0, 10], ['bomber', 4, .18, 1, 4], ['bomber', 4, .82, 1, 4], ['mage', 6, .5, 2, 6], ['archer', 14, .5, 2, 7]]},
 
   {n:'Les loups de l’hiver', lv:4, d:'Des épéistes aguerris surgissent du blizzard.',
     h:'Ils frappent fort. Si ça coince, montez vos soldats au rang Or dans l’Armée.',
-    b:[['sword', 20, .3, 0, 10], ['sword', 20, .7, 1, 10], ['archer', 20, .5, 2, 10, 3]]},
+    b:[['knight', 6, .15, 0, 3], ['vampire', 6, .85, 0, 3], ['sword', 20, .5, 1, 10], ['archer', 20, .5, 2, 10, 3]]},
   {n:'Forteresse de glace', lv:4, d:'Un rempart de Gardiens protège une armée de tireurs.',
     h:'Contournez le rempart par les côtés, ou percez-le avec des Lanciers.',
-    b:[['guard', 8, .5, 0, 8], ['bomber', 8, .5, 1, 8, 3], ['archer', 30, .5, 2, 10, 3]]},
+    b:[['guard', 8, .5, 0, 8], ['gunner', 4, .5, 1, 4, 3], ['shaman', 4, .5, 1, 4, 3], ['archer', 30, .5, 2, 10, 3]]},
   {n:'Le grand assaut', lv:4, d:'La plus grande armée que vous ayez affrontée.',
     h:'Pas de recette unique : observez sa composition et répondez arme par arme.',
-    b:[['sword', 24, .18, 0, 8], ['guard', 4, .5, 0, 4], ['spear', 24, .82, 0, 8], ['bomber', 8, .5, 1, 8, 3], ['archer', 24, .5, 2, 12, 3]]},
+    b:[['sword', 24, .18, 0, 8], ['tank', 1, .5, 1, 1, 3], ['cyborg', 6, .5, 0, 6], ['spear', 24, .82, 0, 8], ['necro', 4, .5, 1, 4, 3], ['flamer', 4, .5, 1, 4, 3], ['archer', 24, .5, 2, 12, 3]]},
   {n:'La garde royale', lv:4, d:'L’élite de l’Empereur tient le col.',
-    h:'Les Lanciers percent les Gardiens, les Sapeurs ravagent les rangs serrés derrière.',
-    b:[['guard', 10, .5, 0, 10], ['spear', 24, .5, 1, 12], ['archer', 20, .5, 2, 10]]},
+    h:'Les Paladins soignent leurs voisins : concentrez-vous sur eux, et méfiez-vous du tireur d’élite.',
+    b:[['paladin', 6, .5, 0, 6], ['saber', 9, .5, 0, 9], ['spear', 24, .5, 1, 12], ['sniper', 4, .5, 2, 4], ['drone', 9, .5, 2, 9]]},
   {n:'L’Empereur de Givre', lv:4, d:'Le dernier Seigneur de guerre. Tout se joue ici.',
     h:'Gagnez en dépensant le moins possible pour décrocher les trois étoiles.',
-    b:[['lord', 1, .5, 1, 1, 5], ['guard', 6, .5, 0, 6], ['spear', 20, .18, 0, 5], ['spear', 20, .82, 0, 5], ['bomber', 4, .15, 2, 4], ['bomber', 4, .85, 2, 4], ['archer', 24, .5, 2, 12]]}
+    b:[['lord', 1, .5, 1, 1, 5], ['golem', 1, .2, 0, 1], ['minotaur', 1, .8, 0, 1], ['guard', 6, .5, 0, 6], ['spear', 20, .18, 0, 5], ['spear', 20, .82, 0, 5], ['dragon', 2, .5, 1, 2], ['mech', 1, .5, 2, 1], ['archer', 24, .5, 2, 12]]}
 ];
 const LORD_COST = 300, BUDGET_X = 1.5, STAR3 = .64, STAR2 = .8;
 const r10 = v => Math.round(v / 10) * 10;
@@ -86,7 +86,7 @@ function spawnEnemies(d){
   d.blocks.forEach(k => {
     const ay = z.y1 - 10 - k.row * 28, cx = k.x * G.W;
     if (k.type === 'lord') { const u = makeLord(k.lvl, 'red', cx, clamp(ay - 4, z.y0 + 14, z.y1)); u.drop = .9; units.push(u); return; }
-    const sp = k.type === 'guard' ? 20 : 11, sy = k.type === 'guard' ? 18 : 10;
+    const sp = gapOf(k.type), sy = Math.round(gapOf(k.type) * .9);
     for (let j = 0; j < k.n; j++) {
       const col = j % k.cols, row = Math.floor(j / k.cols);
       const x = clamp(cx + (col - (k.cols - 1) / 2) * sp, 8, G.W - 8), y = clamp(ay - row * sy, z.y0 + 4, z.y1);
@@ -98,10 +98,10 @@ function spawnEnemies(d){
 const banCache = {};
 function chapterBanner(ci){
   if (banCache[ci]) return cloneCanvas(banCache[ci]);
-  const W = 120, H = 34, c = document.createElement('canvas'); c.width = W; c.height = H;
-  const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  const W = 120, H = 34, c = document.createElement('canvas'); c.width = W * HR; c.height = H * HR;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.scale(HR, HR);
   x.drawImage(genGround(CHAPTERS[ci].theme, W, H, ci * 13 + 4), 0, 0);
-  const types = levelDef(ci * 5 + 5).blocks.filter(k => k.type !== 'lord');
+  const types = levelDef(ci * 5 + 5).blocks.filter(k => k.type !== 'lord' && UNITS_ART[k.type].h < 64);
   [0, 1, 2].forEach(k => {
     const s = types[k % types.length];
     drawUnitAt(x, {type:s.type, lvl:s.lvl, team:'red', face:-1, atk:0, moving:false, walk:0, flash:0, id:k, cd:0, cdMax:1, aim:-.2}, W - 14 - k * 17, H - 3 - (k % 2) * 2, 0);
@@ -259,7 +259,7 @@ function paintAt(p){
   if (story && p.y + 10 < z.y0 - 24) { toast('Placez vos soldats dans la zone bleue'); sfx('err'); return; }
   if (units.length >= MAXU) { toast(`Maximum ${MAXU} soldats`); return; }
   // pinceau en formation : rangs serrés comme une vraie armée
-  const n = B.brush, cols = n === 1 ? 1 : n === 6 ? 3 : 6, sp = B.type === 'guard' ? 20 : 11;
+  const n = B.brush, cols = n === 1 ? 1 : n === 6 ? 3 : 6, sp = gapOf(B.type);
   const lvl = story ? SAV.cards[B.type].lvl : B.lvl, cost = story ? UT[B.type].cost : 0;
   let placed = 0, broke = false;
   for (let k = 0; k < n && units.length < MAXU; k++) {
@@ -332,15 +332,21 @@ function updBudget(){
   $('#bud-s').innerHTML = alive('blue') ? starsHtml(st, 2) : '';
   $('#cnt-b').lastChild.textContent = alive('blue');
 }
+// la rangée de soldats défile : on garde sa position quand le panneau est reconstruit
 function buildPanel(){
+  const o = bp.querySelector('.sbu'), sl = o ? o.scrollLeft : 0;
+  buildPanel0();
+  const n = bp.querySelector('.sbu'); if (n) n.scrollLeft = sl;
+}
+function buildPanel0(){
   bp.classList.toggle('compact', B.mode === 'story' && B.phase !== 'deploy');
   if (B.mode === 'story') {
     if (B.phase === 'deploy') {
       const d = B.def;
       bp.innerHTML = `<div class="budget"><span class="bv">${ic('coin', 2)}<b id="bud-v"></b></span>
           <div class="bbar"><i id="bud-i"></i><em style="left:${d.s3 / d.budget * 100}%"></em><em style="left:${d.s2 / d.budget * 100}%"></em></div><span id="bud-s" class="bst"></span></div>
-        <div class="sbu">${TYPES.map(t => { const c = SAV.cards[t]; return `<button data-t="${t}" class="pb ${B.type === t && !B.erase ? 'on' : ''}" ${c.u ? '' : 'disabled'} aria-label="${UT[t].name}">
-          ${c.u ? `<span class="cost">${ic('coin', 1)}${UT[t].cost}</span>` : `<span class="cost">${ic('lock', 1)}</span>`}</button>`; }).join('')}</div>
+        <div class="sbu">${TYPES.filter(t => SAV.cards[t].u).map(t => `<button data-t="${t}" class="pb ${B.type === t && !B.erase ? 'on' : ''}" aria-label="${UT[t].name}">
+          <span class="cost">${ic('coin', 1)}${UT[t].cost}</span></button>`).join('')}</div>
         <div class="sbr">
           <button class="pb sm" id="sb-br">${ic('person', 2)}×${B.brush}</button>
           <button class="pb sm ${B.erase ? 'on' : ''}" id="sb-er" aria-label="Gomme">${ic('erase', 2)}</button>
