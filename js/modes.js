@@ -177,7 +177,7 @@ function restoreArmy(i){
 function startStory(i){
   closeModal();
   const def = levelDef(i);
-  B = {mode:'story', def, phase:'deploy', budget:def.budget, spent:0, type:TYPES.find(t => SAV.cards[t].u), brush:6, erase:false, speed:1,
+  B = {mode:'story', def, phase:'deploy', budget:def.budget, spent:0, type:SORTED.find(t => SAV.cards[t].u), era:'all', brush:6, erase:false, speed:1,
     ended:false, shown:false, theme:CHAPTERS[def.ch].theme, seed:i * 31 + 5, squads:[]};
   resetWorld(); go('battle');
   $('#b-title').textContent = `${lvLabel(i)} · ${def.name}`;
@@ -240,7 +240,7 @@ function endStory(win){
 /* ---------- BAC À SABLE ---------- */
 function startSandbox(){
   closeModal();
-  B = {mode:'sandbox', run:false, speed:1, type:'sword', lvl:1, team:'blue', erase:false, brush:1, snapshot:null, theme:'grass', seed:99, squads:[], ended:false};
+  B = {mode:'sandbox', era:'all', run:false, speed:1, type:'sword', lvl:1, team:'blue', erase:false, brush:1, snapshot:null, theme:'grass', seed:99, squads:[], ended:false};
   resetWorld(); go('battle');
   $('#b-title').textContent = 'Bac à sable'; buildPanel();
   toast('Touchez ou glissez sur le terrain');
@@ -275,6 +275,14 @@ function paintAt(p){
   if (story) updBudget();
 }
 const BRUSHES = [1, 6, 24];
+// rangée de catégories au-dessus des soldats ; seules celles qui contiennent des soldats disponibles apparaissent
+function eraChips(avail){
+  const eras = ERAS.filter(e => avail.some(t => UT[t].era === e));
+  if (B.era !== 'all' && !eras.includes(B.era)) B.era = 'all';
+  return `<div class="eras">${['all', ...eras].map(e => `<button class="${B.era === e ? 'on' : ''}" data-era="${e}">${e === 'all' ? 'Tous' : e}</button>`).join('')}</div>`;
+}
+const eraFilter = avail => avail.filter(t => B.era === 'all' || UT[t].era === B.era);
+function bindEras(){ bp.querySelectorAll('[data-era]').forEach(b => b.onclick = () => { B.era = b.dataset.era; sfx('click'); buildPanel(); const s = bp.querySelector('.sbu'); if (s) s.scrollLeft = 0; }); }
 // bataille aléatoire : deux armées rangées (mêlée devant, tireurs derrière)
 function sbRandom(){
   resetWorld(); B.squads = []; B.run = false; B.snapshot = null;
@@ -334,9 +342,9 @@ function updBudget(){
 }
 // la rangée de soldats défile : on garde sa position quand le panneau est reconstruit
 function buildPanel(){
-  const o = bp.querySelector('.sbu'), sl = o ? o.scrollLeft : 0;
+  const keep = ['.sbu', '.eras'].map(q => { const o = bp.querySelector(q); return o ? o.scrollLeft : 0; });
   buildPanel0();
-  const n = bp.querySelector('.sbu'); if (n) n.scrollLeft = sl;
+  ['.sbu', '.eras'].forEach((q, i) => { const n = bp.querySelector(q); if (n) n.scrollLeft = keep[i]; });
 }
 function buildPanel0(){
   bp.classList.toggle('compact', B.mode === 'story' && B.phase !== 'deploy');
@@ -345,7 +353,8 @@ function buildPanel0(){
       const d = B.def;
       bp.innerHTML = `<div class="budget"><span class="bv">${ic('coin', 2)}<b id="bud-v"></b></span>
           <div class="bbar"><i id="bud-i"></i><em style="left:${d.s3 / d.budget * 100}%"></em><em style="left:${d.s2 / d.budget * 100}%"></em></div><span id="bud-s" class="bst"></span></div>
-        <div class="sbu">${TYPES.filter(t => SAV.cards[t].u).map(t => `<button data-t="${t}" class="pb ${B.type === t && !B.erase ? 'on' : ''}" aria-label="${UT[t].name}">
+        ${eraChips(SORTED.filter(t => SAV.cards[t].u))}
+        <div class="sbu">${eraFilter(SORTED.filter(t => SAV.cards[t].u)).map(t => `<button data-t="${t}" class="pb ${B.type === t && !B.erase ? 'on' : ''}" aria-label="${UT[t].name}">
           <span class="cost">${ic('coin', 1)}${UT[t].cost}</span></button>`).join('')}</div>
         <div class="sbr">
           <button class="pb sm" id="sb-br">${ic('person', 2)}×${B.brush}</button>
@@ -363,14 +372,14 @@ function buildPanel0(){
       bp.querySelector('#sb-er').onclick = () => { B.erase = !B.erase; sfx('click'); buildPanel(); };
       bp.querySelector('#sb-cl').onclick = () => { units = units.filter(u => u.team !== 'blue'); B.spent = 0; sfx('click'); updBudget(); };
       bp.querySelector('#b-fight').onclick = startFight;
-      decorate(bp); updHud(); updBudget(); return;
+      bindEras(); decorate(bp); updHud(); updBudget(); return;
     } else {
       bp.innerHTML = `<div class="frow"><div id="pwrap">${powerBar()}</div>
         <button class="pb" id="b-spd" aria-label="Vitesse">${ic('ffwd', 2)}x${B.speed}</button></div>`;
       bp.querySelector('#b-spd').onclick = () => { B.speed = B.speed >= 3 ? 1 : B.speed + 1; sfx('click'); buildPanel(); };
     }
   } else {
-    bp.innerHTML = `<div class="sbu">${TYPES.map(t => `<button data-t="${t}" class="pb ${B.type === t && !B.erase ? 'on' : ''}" aria-label="${UT[t].name}"></button>`).join('')}</div>
+    bp.innerHTML = `${eraChips(SORTED)}<div class="sbu">${eraFilter(SORTED).map(t => `<button data-t="${t}" class="pb ${B.type === t && !B.erase ? 'on' : ''}" aria-label="${UT[t].name}"></button>`).join('')}</div>
       <div class="sbr">
         <div class="seg">${[1,2,3,4,5].map(l => `<button class="pb ${B.lvl === l ? 'on' : ''}" data-l="${l}">${l}</button>`).join('')}</div>
         <div style="flex:1"></div>
@@ -398,6 +407,7 @@ function buildPanel0(){
     bp.querySelector('#sb-rs').onclick = sbRestore;
     bp.querySelector('#sb-sp').onclick = () => { B.speed = B.speed >= 3 ? 1 : B.speed + 1; buildPanel(); };
     bp.querySelector('#sb-go').onclick = sbGo;
+    bindEras();
   }
   decorate(bp); updHud();
 }

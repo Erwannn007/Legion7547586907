@@ -1,5 +1,5 @@
 /* Légion Pixel — service worker cache-first */
-const CACHE = 'legion-pixel-v6';
+const CACHE = 'legion-pixel-v7';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png',
   './css/style.css', './js/art.js', './js/pixel.js', './js/units.js', './js/core.js', './js/battle.js', './js/modes.js', './js/meta.js',
   './fonts/pixelify-400.woff2', './fonts/pixelify-700.woff2', './fonts/press-start-2p.woff2'];

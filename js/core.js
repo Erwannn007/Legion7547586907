@@ -84,15 +84,15 @@ const UT = {
     ab:'Boule de feu', abd:'Une boule de feu explose sur la cible et enflamme tout le groupe pendant 3 s.',
     good:'Groupes serrés, Myconides', bad:'Ninjas, Cavaliers',
     desc:'Vieux sage au chapeau pointu. Sa barbe a déjà brûlé deux fois.'},
-  mush:  {name:'Myconide', era:'Invention', role:'Poison', cost:14, hp:170, dmg:8, range:8, cd:1, spd:24, squad:4, armor:0, r:7, unlock:8, spores:true,
+  mush:  {name:'Myconide', era:'Créatures', role:'Poison', cost:14, hp:170, dmg:8, range:8, cd:1, spd:24, squad:4, armor:0, r:7, unlock:8, spores:true,
     ab:'Spores', abd:'Libère toutes les 3 s un nuage toxique qui empoisonne les ennemis autour. Explose en spores à sa mort.',
     good:'Hordes, Squelettes, Gobelins', bad:'Pyromanciens, Tireurs',
     desc:'Un champignon qui marche. Lent, mou, et terriblement contagieux.'},
-  vampire:{name:'Vampire', era:'Fantastique', role:'Prédateur', cost:30, hp:220, dmg:26, range:8, cd:.7, spd:48, squad:2, armor:.1, r:7, unlock:9, steal:.6,
+  vampire:{name:'Vampire', era:'Créatures', role:'Prédateur', cost:30, hp:220, dmg:26, range:8, cd:.7, spd:48, squad:2, armor:.1, r:7, unlock:9, steal:.6,
     ab:'Morsure', abd:'Récupère 60 % des dégâts qu’il inflige. Il se soigne en combattant.',
     good:'Épéistes, Fusiliers', bad:'Prêtresses, Paladins',
     desc:'Noble de la nuit aux griffes acérées. Plus le combat dure, plus il est en forme.'},
-  troll: {name:'Troll', era:'Fantastique', role:'Géant', cost:60, hp:1150, dmg:46, range:12, cd:1.8, spd:20, squad:1, armor:.15, r:13, unlock:10, regen:14, cleave:18, kb:1.5,
+  troll: {name:'Troll', era:'Créatures', role:'Géant', cost:60, hp:1150, dmg:46, range:12, cd:1.8, spd:20, squad:1, armor:.15, r:13, unlock:10, regen:14, cleave:18, kb:1.5,
     ab:'Régénération', abd:'Reprend 14 PV par seconde et balaie tout autour de lui à la massue.',
     good:'Hordes, Épéistes', bad:'Pyromanciens, Lance-flammes',
     desc:'Géant des cavernes au gros nez. Seul le feu l’empêche vraiment de guérir.'},
@@ -124,27 +124,27 @@ const UT = {
     ab:'Tir d’élite', abd:'Vise toujours l’ennemi le plus robuste à portée, de l’autre bout du champ.',
     good:'Gardiens, Trolls, Cavaliers', bad:'Ninjas, Gobelins',
     desc:'Caché sous sa tenue de camouflage. Un tir toutes les trois secondes, mais quel tir.'},
-  cyborg:{name:'Cyborg', era:'Futur', role:'Laser', cost:36, hp:270, dmg:28, range:140, cd:1.4, spd:30, squad:3, armor:.3, r:7, unlock:14, proj:'laser', pierce:true,
+  cyborg:{name:'Cyborg', era:'Futuriste', role:'Laser', cost:36, hp:270, dmg:28, range:140, cd:1.4, spd:30, squad:3, armor:.3, r:7, unlock:14, proj:'laser', pierce:true,
     ab:'Rayon laser', abd:'Un rayon instantané qui ignore l’armure et traverse toute la ligne.',
     good:'Gardiens, Légionnaires', bad:'Ninjas, Lames plasma',
     desc:'Mi-homme, mi-machine, son œil rouge ne rate jamais rien.'},
-  drone: {name:'Drone', era:'Futur', role:'Aérien', cost:22, hp:70, dmg:9, range:95, cd:.45, spd:50, squad:3, armor:0, r:6, unlock:14, proj:'bolt', fly:true,
+  drone: {name:'Drone', era:'Futuriste', role:'Aérien', cost:22, hp:70, dmg:9, range:95, cd:.45, spd:50, squad:3, armor:0, r:6, unlock:14, proj:'bolt', fly:true,
     ab:'Vol', abd:'Survole la mêlée sans être bloqué et mitraille avec de petits lasers.',
     good:'Mêlée lente, Golems', bad:'Chamans, Mitrailleurs',
     desc:'Quadricoptère de combat. Il passe au-dessus de tout le monde.'},
-  minotaur:{name:'Minotaure', era:'Fantastique', role:'Bélier', cost:55, hp:880, dmg:50, range:12, cd:1.6, spd:30, squad:1, armor:.2, r:13, unlock:15, charge:2.5, kb:2, cleave:16,
+  minotaur:{name:'Minotaure', era:'Créatures', role:'Bélier', cost:55, hp:880, dmg:50, range:12, cd:1.6, spd:30, squad:1, armor:.2, r:13, unlock:15, charge:2.5, kb:2, cleave:16,
     ab:'Coup de cornes', abd:'Charge tête baissée : le premier coup fait 2,5 fois plus mal et envoie valser tout le monde.',
     good:'Lignes serrées, Légionnaires', bad:'Lanciers, Tireurs d’élite',
     desc:'Mi-homme, mi-taureau, armé d’une hache double plus grande que lui.'},
-  saber: {name:'Lame plasma', era:'Futur', role:'Duelliste', cost:34, hp:230, dmg:34, range:10, cd:.7, spd:46, squad:3, armor:.15, r:7, unlock:15, deflect:.5, charge:2,
+  saber: {name:'Lame plasma', era:'Futuriste', role:'Duelliste', cost:34, hp:230, dmg:34, range:10, cd:.7, spd:46, squad:3, armor:.15, r:7, unlock:15, deflect:.5, charge:2,
     ab:'Renvoi', abd:'Dévie la moitié des tirs avec sa lame d’énergie et bondit sur sa cible.',
     good:'Fusiliers, Cyborgs, Archères', bad:'Trolls, Minotaures',
     desc:'Chevalier des étoiles au sabre lumineux aux couleurs de son camp.'},
-  golem: {name:'Golem', era:'Fantastique', role:'Colosse', cost:80, hp:2100, dmg:40, range:12, cd:2.2, spd:16, squad:1, armor:.55, r:14, unlock:16, resist:.3, cleave:22, kb:1.8,
+  golem: {name:'Golem', era:'Créatures', role:'Colosse', cost:80, hp:2100, dmg:40, range:12, cd:2.2, spd:16, squad:1, armor:.55, r:14, unlock:16, resist:.3, cleave:22, kb:1.8,
     ab:'Peau de pierre', abd:'Les tirs ne lui font presque rien et ses poings secouent tout autour de lui.',
     good:'Archères, Fusiliers, Drones', bad:'Lanciers, Cyborgs',
     desc:'Un rocher vivant animé par une rune lumineuse. Lent, mais impossible à arrêter.'},
-  dragon:{name:'Dragonnet', era:'Fantastique', role:'Aérien', cost:50, hp:330, dmg:9, range:42, cd:.22, spd:38, squad:1, armor:.1, r:10, unlock:17, proj:'cone', burn:6, fly:true,
+  dragon:{name:'Dragonnet', era:'Créatures', role:'Aérien', cost:50, hp:330, dmg:9, range:42, cd:.22, spd:38, squad:1, armor:.1, r:10, unlock:17, proj:'cone', burn:6, fly:true,
     ab:'Souffle de feu', abd:'Vole au-dessus des lignes et crache un torrent de flammes.',
     good:'Mêlée, Trolls, Myconides', bad:'Tireurs d’élite, Chamans',
     desc:'Un jeune dragon aux écailles de son camp. Déjà assez grand pour tout brûler.'},
@@ -152,12 +152,16 @@ const UT = {
     ab:'Obus', abd:'Un obus explosif à longue portée. Blindage énorme, mais aveugle de tout près.',
     good:'Tout ce qui est serré', bad:'Gobelins, Ninjas, Cyborgs',
     desc:'Quarante tonnes d’acier aux couleurs de son camp. Le roi du champ de bataille.'},
-  mech:  {name:'Méca', era:'Futur', role:'Titan', cost:160, hp:3100, dmg:46, range:165, minR:24, cd:2.6, spd:17, squad:1, armor:.5, r:18, unlock:19, proj:'rocket', aoe:26, burst:3,
+  mech:  {name:'Méca', era:'Futuriste', role:'Titan', cost:160, hp:3100, dmg:46, range:165, minR:24, cd:2.6, spd:17, squad:1, armor:.5, r:18, unlock:19, proj:'rocket', aoe:26, burst:3,
     ab:'Salve de roquettes', abd:'Tire 3 roquettes à tête chercheuse qui explosent sur l’ennemi.',
     good:'Hordes, Chars', bad:'Cyborgs, Ninjas',
     desc:'Robot de combat piloté, haut comme une maison. La fin de toutes les guerres.'}
 };
-const TYPES = Object.keys(UT);
+const TYPES = Object.keys(UT); // ordre fixe : il sert d'index dans les armées sauvegardées
+// catégories d'affichage, chacune triée par coût
+const ERAS = ['Médiéval', 'Histoire', 'Fantastique', 'Créatures', 'Moderne', 'Futuriste'];
+const ERA_TYPES = Object.fromEntries(ERAS.map(e => [e, TYPES.filter(t => UT[t].era === e).sort((a, b) => UT[a].cost - UT[b].cost)]));
+const SORTED = ERAS.flatMap(e => ERA_TYPES[e]);
 const HPM = l => Math.pow(1.27, l - 1), DMGM = l => Math.pow(1.22, l - 1);
 const UP_N = [0, 3, 6, 12, 20], UP_G = [0, 80, 200, 500, 1200];
 const LVL_NAMES = ['', 'Cuir', 'Fer', 'Acier', 'Or', 'Mythique'];

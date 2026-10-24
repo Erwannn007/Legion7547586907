@@ -13,12 +13,13 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:manipulation;color:var(--tx);
+html,body{margin:0;height:100%;background-color:#0c0917;overflow:hidden;overscroll-behavior:none;touch-action:manipulation;color:var(--tx);
   font-family:'Pixelify',monospace;font-size:17px;-webkit-font-smoothing:none;font-smooth:never}
 body{background-color:var(--bg0);
   background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1.6px),radial-gradient(130% 70% at 50% -10%,#2b1f52 0%,#151027 55%,var(--bg0) 100%);
   background-size:6px 6px,100% 100%}
-#app{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;background:inherit}
+/* plein écran : 100dvh suit la vraie hauteur visible (toute la hauteur de l'écran en mode application) */
+#app{position:fixed;top:0;left:0;right:0;height:100vh;height:100dvh;overflow:hidden;background:inherit}
 img.ic{image-rendering:pixelated;vertical-align:middle;flex:none;display:inline-block}
 canvas{image-rendering:pixelated}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;gap:12px;
@@ -120,6 +121,10 @@ button{font:inherit;color:inherit;background:none;margin:0;padding:0;cursor:poin
 
 /* ---- ARMÉE ---- */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.erah{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:10px 2px -4px;padding-bottom:6px;box-shadow:0 3px 0 var(--s3)}
+.erah:first-child{margin-top:0}
+.erah b{font-family:'PS2P';font-weight:400;font-size:12px;color:var(--gold);text-shadow:0 2px 0 #000}
+.erah span{font-family:'PS2P';font-size:9px;color:var(--mut)}
 .ucard{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;padding:12px 8px 12px;text-align:center;
   --tier:var(--t1);box-shadow:0 -3px 0 var(--ol),0 3px 0 var(--ol),-3px 0 0 var(--ol),3px 0 0 var(--ol),inset 0 4px 0 var(--tier),inset 0 -3px 0 var(--lo)}
 .ucard .por{width:100%;display:flex;justify-content:center;background:radial-gradient(closest-side,color-mix(in srgb,var(--tier) 30%,transparent),transparent);padding-top:4px}
@@ -173,7 +178,7 @@ button{font:inherit;color:inherit;background:none;margin:0;padding:0;cursor:poin
   font-family:'PS2P';font-size:10px;line-height:1.6;padding:8px 14px;text-align:center;max-width:90%;transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1);
   color:var(--gold);background:rgba(12,9,23,.9)}
 #toast.on{opacity:1;transform:translate(-50%,0)}
-.bpanel{flex:none;height:calc(212px + var(--sb));padding:10px calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);display:flex;flex-direction:column;gap:10px;position:relative;z-index:2;
+.bpanel{flex:none;padding:10px calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);display:flex;flex-direction:column;gap:10px;position:relative;z-index:2;
   background:var(--bg1);box-shadow:0 -3px 0 var(--bd),inset 0 3px 0 rgba(255,255,255,.04)}
 .phead{display:flex;align-items:center;gap:10px;min-height:44px}
 .phint{flex:1;font-size:14px;font-weight:700;line-height:1.2;color:var(--tx);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -194,11 +199,14 @@ button{font:inherit;color:inherit;background:none;margin:0;padding:0;cursor:poin
 .pw i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);box-shadow:inset 0 -5px 0 rgba(0,0,0,.25),inset 0 3px 0 rgba(255,255,255,.3),3px 0 0 #fff;transition:width .3s ease-out}
 .pw span{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;padding:0 8px;font-family:'PS2P';font-size:8px;text-shadow:1px 1px 0 #000}
 .bpanel.compact{height:calc(70px + var(--sb))}
+.eras{display:flex;gap:6px;overflow-x:auto;padding:2px 3px;margin-bottom:-4px;scrollbar-width:none;flex:none}.eras::-webkit-scrollbar{display:none}
+.eras button{flex:none;font-family:'PS2P';font-size:8px;padding:6px 9px;color:var(--mut);background:#16112a;box-shadow:0 0 0 2px var(--bd);white-space:nowrap}
+.eras button.on{background:var(--gold);color:#2a1800}
 .frow{display:flex;align-items:center;gap:12px;flex:1}
 .frow #pwrap{flex:1}
 .frow .pb{width:76px;flex:none;min-height:48px;font-size:11px}
 /* bac à sable */
-.sbu{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 38px) / 5.4);gap:8px;padding:4px 3px 10px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}.sbu::-webkit-scrollbar{display:none}.sbu .pb{scroll-snap-align:start}
+.sbu{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 38px) / 5.4);gap:8px;padding:4px 3px 8px;flex:none;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}.sbu::-webkit-scrollbar{display:none}.sbu .pb{scroll-snap-align:start}
 .sbu .pb{min-height:64px;padding:0;overflow:hidden}.sbu .pb canvas{margin:-6px -12px 0}
 .sbr{display:flex;gap:7px;align-items:center;padding:0 3px}
 .sbr .pb.sm{flex:1;min-width:0}

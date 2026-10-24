@@ -3,7 +3,11 @@
 /* ---------- ARMÉE ---------- */
 function buildArmy(){
   const el = $('#army-grid'); el.innerHTML = '';
-  for (const t of TYPES) {
+  for (const t of SORTED) {
+    if (ERA_TYPES[UT[t].era][0] === t) {
+      const list = ERA_TYPES[UT[t].era], got = list.filter(k => SAV.cards[k].u).length;
+      el.insertAdjacentHTML('beforeend', `<div class="erah"><b>${UT[t].era.toUpperCase()}</b><span>${got}/${list.length}</span></div>`);
+    }
     const c = SAV.cards[t], need = UP_N[c.lvl], max = c.lvl >= 5;
     const canUp = c.u && !max && c.n >= need && SAV.gold >= UP_G[c.lvl];
     const b = document.createElement('button'); b.className = 'ucard pp' + (c.u ? '' : ' locked') + (canUp ? ' can' : '');
@@ -126,16 +130,25 @@ sizeScene();
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
 if (isIOS && !standalone) $('#install-hint').classList.remove('hidden');
-// iOS en mode app : la hauteur rapportée oublie parfois la barre d'état et laisse une bande vide en bas
+// iOS en mode app : la hauteur rapportée oublie parfois la barre d'état (au lancement ou au retour dans l'app)
+// et laisse une bande vide en bas. On prend la plus grande hauteur connue, puis on redimensionne les canevas.
 function fitApp(){
   const app = $('#app');
-  if (!standalone) { app.style.height = ''; app.style.bottom = ''; return; }
-  const portraitMode = matchMedia('(orientation: portrait)').matches;
-  const h = Math.max(window.innerHeight, document.documentElement.clientHeight, isIOS ? (portraitMode ? screen.height : screen.width) : 0);
-  app.style.bottom = 'auto'; app.style.height = h + 'px';
+  if (standalone) {
+    const portraitMode = matchMedia('(orientation: portrait)').matches, vv = window.visualViewport;
+    const h = Math.max(window.innerHeight, document.documentElement.clientHeight, vv ? vv.height : 0, isIOS ? (portraitMode ? screen.height : screen.width) : 0);
+    app.style.height = h + 'px';
+  } else app.style.height = '';
+  resize(); if (cur === 'menu') sizeScene();
 }
 fitApp();
+for (const ms of [100, 400, 1200]) setTimeout(fitApp, ms);
 window.addEventListener('resize', fitApp);
-window.addEventListener('orientationchange', () => setTimeout(() => { fitApp(); resize(); sizeScene(); }, 300));
+if (window.visualViewport) visualViewport.addEventListener('resize', fitApp);
+window.addEventListener('pageshow', fitApp);
+window.addEventListener('orientationchange', () => setTimeout(fitApp, 300));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(fitApp, 150); });
+// le décor de l'accueil suit la taille réelle de l'écran
+if (window.ResizeObserver) new ResizeObserver(() => { if (cur === 'menu') sizeScene(); }).observe($('#scene'));
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
