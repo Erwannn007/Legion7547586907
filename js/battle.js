@@ -78,36 +78,26 @@ function camStep(dt){
 // zones de déploiement (espace art)
 const zone = team => team === 'red' ? {y0:44, y1:Math.round(G.Hw * .43)} : {y0:Math.round(G.Hw * .58), y1:G.Hw - 6};
 const FORM = {6:[[-12,-6],[0,-6],[12,-6],[-12,6],[0,6],[12,6]], 4:[[-9,-6],[9,-6],[-9,6],[9,6]], 3:[[-11,6],[11,6],[0,-6]], 2:[[-11,0],[11,0]], 1:[[0,0]]};
-// encombrement d'une escouade (pour le placement)
-const ext = type => { const F = FORM[UT[type].squad], r = UT[type].r;
-  return {w:Math.max(...F.map(f => Math.abs(f[0]))) * 2 + r * 2, h:Math.max(22, Math.max(...F.map(f => Math.abs(f[1]))) * 2 + 12)}; };
 function makeUnit(type, lvl, team, x, y){
   const T = UT[type];
   return {id:uid++, type, lvl, team, x, y, hp:T.hp * HPM(lvl), maxHp:T.hp * HPM(lvl), dmg:T.dmg * DMGM(lvl), range:T.range, cdMax:T.cd, cd:rnd() * .6,
     spd:T.spd, armor:T.armor, r:T.r, face:team === 'blue' ? 1 : -1, target:null, rt:0, atk:0, walk:rnd(), moving:false, flash:0, drop:0, aim:0,
     dead:false, kx:0, ky:0, stun:0, chargeCd:0, charging:false, vx:0, vy:0};
 }
+// Seigneur de guerre : un Gardien géant qui mène l'armée ennemie des boss
+function makeLord(lvl, team, x, y){
+  const u = makeUnit('guard', lvl, team, x, y);
+  u.sc = 2; u.hp = u.maxHp = u.hp * 14; u.dmg *= 3; u.r = 18; u.spd = 17; u.cdMax = 1.5; u.lord = true;
+  return u;
+}
 function squadSlots(type, team, x, y){
   return FORM[UT[type].squad].map(([dx, dy]) => [x + dx, y + (team === 'red' ? -dy : dy)]);
-}
-function clampSquad(type, team, x, y){
-  const z = zone(team), e = ext(type), mx = e.w / 2 - 2, my = e.h / 2 - 6;
-  return [clamp(x, mx, G.W - mx), clamp(y, z.y0 + my, z.y1 - my)];
 }
 function spawnSquad(type, lvl, team, x, y){
   squadSlots(type, team, x, y).forEach(([sx, sy], i) => {
     const u = makeUnit(type, lvl, team, sx + (rnd() - .5) * 2, sy + (rnd() - .5) * 2); u.drop = .35 + i * .06; units.push(u);
   });
   B.squads.push({team, x, y, type, lvl});
-}
-function squadFree(type, team, x, y){
-  const e = ext(type);
-  for (const q of B.squads) {
-    if (q.team !== team) continue;
-    const f = ext(q.type);
-    if (Math.abs(q.x - x) < (e.w + f.w) / 2 * .85 && Math.abs(q.y - y) < (e.h + f.h) / 2 * .85) return false;
-  }
-  return true;
 }
 function resetWorld(){ units = []; projectiles = []; particles = []; corpses = []; waves = []; decals = []; texts = []; ground = null; G.slowT = 0; G.lastKill = null; camReset(); }
 
@@ -194,10 +184,10 @@ function damage(t, dmg, src, opts = {}){
   if (t.dead) return;
   let m = opts.pierce ? 1 : 1 - t.armor;
   t.hp -= dmg * m * (.9 + rnd() * .2); t.flash = .08;
-  const hy = t.y - (t.type === 'guard' ? 20 : 16);
+  const hy = t.y - (t.type === 'guard' ? 20 : 16) * (t.sc || 1);
   if (t.armor >= .3 && !opts.pierce) { burst(t.x, hy, ['#ffffff','#ffe9a0'], 3, 40, .25, 80, 10); sfx('clang'); }
   else { burst(t.x, hy, ['#ffffff','#ffd27a','#d94040'], 3, 40, .3, 120, 15); sfx('hit'); }
-  if (opts.kb) { const dx = t.x - (src ? src.x : t.x), dy = t.y - (src ? src.y : t.y), d = Math.hypot(dx, dy) || 1; const k = opts.kb * (t.type === 'guard' ? .35 : 1); t.kx += dx / d * k * 8; t.ky += dy / d * k * 8; }
+  if (opts.kb) { const dx = t.x - (src ? src.x : t.x), dy = t.y - (src ? src.y : t.y), d = Math.hypot(dx, dy) || 1; const k = opts.kb * (t.lord ? .06 : t.type === 'guard' ? .35 : 1); t.kx += dx / d * k * 8; t.ky += dy / d * k * 8; }
   if (t.hp <= 0) kill(t);
 }
 function kill(u){
@@ -226,7 +216,7 @@ function bakeCorpse(k){
   g.fillStyle = 'rgba(110,20,30,.55)';
   for (let i = 0; i < 6; i++) g.fillRect(x + Math.round((rnd() - .5) * 10), y - 1 + Math.round((rnd() - .5) * 4), 1 + (rnd() < .4 ? 1 : 0), 1);
   const s = corpseSprite(u);
-  g.save(); g.globalAlpha = .9; g.translate(x, y - 3); g.rotate(k.rot); g.drawImage(s, -12, -s.height); g.restore();
+  g.save(); g.globalAlpha = .9; g.translate(x, y - 3); g.rotate(k.rot); if (u.sc) g.scale(u.sc, u.sc); g.drawImage(s, -12, -s.height); g.restore();
 }
 function stepCorpses(dt){
   for (const k of corpses) {
@@ -273,8 +263,9 @@ function attack(u, t){
     sfx('pierce');
   } else if (u.type === 'guard') {
     damage(t, u.dmg, u, {kb:1.4});
-    for (const o of units) if (o !== t && !o.dead && o.team !== u.team && Math.hypot(o.x - t.x, o.y - t.y) < 14) damage(o, u.dmg * .5, u, {kb:1});
-    G.shake = Math.max(G.shake, 1.5); sfx('bash');
+    const sr = u.lord ? 30 : 14;
+    for (const o of units) if (o !== t && !o.dead && o.team !== u.team && Math.hypot(o.x - t.x, o.y - t.y) < sr) damage(o, u.dmg * .5, u, {kb:u.lord ? 2.2 : 1});
+    G.shake = Math.max(G.shake, u.lord ? 3.5 : 1.5); sfx(u.lord ? 'boom' : 'bash');
   }
 }
 function sim(dt){
@@ -330,7 +321,7 @@ function sim(dt){
       const rr = a.r + b.r, d2 = dx * dx + dy * dy;
       if (d2 < rr * rr) {
         const d = Math.sqrt(d2) || .01, push = (rr - d) * .5, nx = dx / d, ny = dy / d;
-        const wa = a.type === 'guard' ? .25 : 1, wb = b.type === 'guard' ? .25 : 1, s = wa + wb;
+        const wa = a.lord ? .04 : a.type === 'guard' ? .25 : 1, wb = b.lord ? .04 : b.type === 'guard' ? .25 : 1, s = wa + wb;
         a.x -= nx * push * 2 * wa / s; a.y -= ny * push * 2 * wa / s; b.x += nx * push * 2 * wb / s; b.y += ny * push * 2 * wb / s;
       }
     });
@@ -407,7 +398,7 @@ function pixCircle(c, cx, cy, r, col, dash){
 function render(t){
   const c = actx; c.imageSmoothingEnabled = false; c.setTransform(1, 0, 0, 1, 0, 0);
   ensureGround(); c.drawImage(ground, 0, 0);
-  const deploy = B.mode === 'story' && (B.phase === 'draft' || B.phase === 'ready');
+  const deploy = B.mode === 'story' && B.phase === 'deploy';
   if (deploy) drawZones(t);
   for (const d of decals) {
     if (d.k === 'scorch') { const e = pixEllipse(d.r, Math.round(d.r * .45), `rgba(30,20,15,${(.22 * (1 - d.t / d.max)).toFixed(2)})`); c.drawImage(e, Math.round(d.x - d.r), Math.round(d.y - d.r * .45)); }
@@ -417,7 +408,7 @@ function render(t){
     const u = k.u, s = bodySprite(u.type, u.lvl, u.team, 0, false);
     if (k.h > 0) { const sh = pixEllipse(5, 2, 'rgba(0,0,0,.25)'); c.drawImage(sh, Math.round(k.x - 5), Math.round(k.y - 2)); }
     c.save(); c.translate(Math.round(k.x), Math.round(k.y - 3 - k.h));
-    c.rotate(k.rot); c.drawImage(s, -12, -s.height); c.restore();
+    c.rotate(k.rot); if (u.sc) c.scale(u.sc, u.sc); c.drawImage(s, -12, -s.height); c.restore();
   }
   const sorted = units.slice().sort((a, b) => a.y - b.y);
   for (const u of sorted) {
@@ -427,7 +418,6 @@ function render(t){
       drawUnitAt(c, u, u.x, u.y - u.drop * 130, t, clamp(1 - u.drop * 2, 0, 1));
     } else drawUnitAt(c, u, u.x, u.y, t);
   }
-  if (B.ghost && deploy) drawGhost(t);
   for (const p of projectiles) {
     const sh = pixEllipse(2, 1, 'rgba(0,0,0,.25)'); c.drawImage(sh, Math.round(p.x - 2), Math.round(p.y - 1 + (p.k === 'arrow' ? 8 : 0)));
     if (p.k === 'arrow') {
@@ -446,7 +436,7 @@ function render(t){
   c.globalAlpha = 1;
   for (const u of units) {
     if (u.hp >= u.maxHp || u.drop > 0) continue;
-    const w = u.type === 'guard' ? 18 : 12, x = Math.round(u.x - w / 2), y = Math.round(u.y - unitH(u.type) + 2);
+    const w = (u.type === 'guard' ? 18 : 12) * (u.sc || 1), x = Math.round(u.x - w / 2), y = Math.round(u.y - unitH(u.type) * (u.sc || 1) + 2);
     c.fillStyle = '#1a1020'; c.fillRect(x - 1, y - 1, w + 2, 4);
     c.fillStyle = u.team === 'blue' ? '#1f4aa8' : '#8e2430'; c.fillRect(x, y, w, 2);
     c.fillStyle = u.team === 'blue' ? '#8cc0ff' : '#ff9a8a'; c.fillRect(x, y, Math.max(1, Math.round(w * u.hp / u.maxHp)), 2);
@@ -464,24 +454,11 @@ function render(t){
 function drawZones(t){
   const c = actx;
   for (const team of ['red', 'blue']) {
-    const z = zone(team), top = team === 'red' ? 0 : z.y0 - 30, bot = team === 'red' ? z.y1 : G.Hw;
-    c.fillStyle = team === 'red' ? 'rgba(217,64,64,.12)' : `rgba(59,127,240,${B.sel != null ? (.12 + .06 * (Math.floor(t * 4) % 2)).toFixed(2) : .1})`;
+    const z = zone(team), top = team === 'red' ? 0 : z.y0, bot = team === 'red' ? z.y1 : G.Hw;
+    c.fillStyle = team === 'red' ? 'rgba(217,64,64,.1)' : `rgba(77,141,255,${(.1 + .04 * (Math.floor(t * 2) % 2)).toFixed(2)})`;
     c.fillRect(0, top, G.W, bot - top);
-    const ly = team === 'red' ? z.y1 : z.y0 - 30;
-    c.fillStyle = team === 'red' ? 'rgba(120,20,30,.7)' : 'rgba(220,235,255,.75)';
+    const ly = team === 'red' ? z.y1 : z.y0;
+    c.fillStyle = team === 'red' ? 'rgba(255,84,104,.75)' : 'rgba(160,200,255,.85)';
     for (let x = 2; x < G.W; x += 6) c.fillRect(x, ly, 3, 1);
   }
-  // niveaux des escouades ennemies (pastilles)
-  for (const q of B.squads) {
-    const y = Math.round(q.y + (q.team === 'red' ? 12 : 12)), x = Math.round(q.x - (q.lvl * 3 - 1) / 2);
-    c.fillStyle = '#1a1020'; c.fillRect(x - 1, y - 1, q.lvl * 3 + 1, 4);
-    for (let i = 0; i < q.lvl; i++) { c.fillStyle = q.lvl >= 5 ? '#e0a0ff' : '#ffd35a'; c.fillRect(x + i * 3, y, 2, 2); }
-  }
-}
-function drawGhost(t){
-  const g = B.ghost, o = B.offers[B.sel]; if (!o) return;
-  const c = actx, ok = g.ok, T = UT[o.type];
-  if (T.range > 40) pixCircle(c, g.x, g.y, T.range, ok ? 'rgba(255,255,255,.6)' : 'rgba(255,90,90,.6)', true);
-  squadSlots(o.type, 'blue', g.x, g.y).forEach(([x, y], i) => drawUnitAt(c, {type:o.type, lvl:o.lvl, team:'blue', face:1, atk:0, moving:false, walk:0, flash:0, id:i, cd:0, cdMax:1, aim:-.3}, x, y, t, ok ? .7 : .35));
-  if (!ok) drawMicro(c, 'TROP PRES', g.x, g.y + 10, '#ff9a8a');
 }

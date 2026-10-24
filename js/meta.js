@@ -93,18 +93,19 @@ function buildShop(){
 
 /* ---------- AIDE & RÉGLAGES ---------- */
 $('#b-help').onclick = () => openModal(`<div class="help"><h3>Comment jouer</h3>
-  <h4>Le draft</h4><p>À chaque manche, l’ennemi déploie une escouade en haut. Choisissez une carte parmi trois, puis faites-la glisser où vous voulez dans votre zone bleue (ou touchez la carte, puis le terrain). Le dé relance les cartes une fois par bataille.</p>
-  <h4>La bataille</h4><p>Les soldats combattent seuls. Plus il vous reste de survivants, plus vous gagnez d’étoiles.</p>
+  <h4>Le principe</h4><p>Comme dans Epic Battle Simulator : l’armée ennemie est déjà rangée en haut. Avec votre budget, recrutez et peignez librement vos soldats dans la zone bleue, puis lancez la bataille et regardez le carnage.</p>
+  <h4>Les étoiles</h4><p>Gagner donne 1 étoile. Gagner en dépensant peu en donne 2 ou 3 : les seuils sont les traits blancs sur la jauge de budget. Votre armée est mémorisée, vous pouvez la retoucher et réessayer.</p>
+  <h4>Les boss</h4><p>Chaque chapitre se termine par un Seigneur de guerre géant : très résistant, il balaie tout autour de lui.</p>
   <h4>Caméra</h4><p>Pincez le terrain pour zoomer, glissez pour vous déplacer, touchez deux fois pour revoir tout le champ de bataille.</p>
   <h4>Cinq soldats, cinq styles</h4><p>L’Épéiste charge les lignes arrière. L’Archère tire en cloche et recule. Le Lancier transperce les armures et brise les charges. Le Gardien attire les coups et bloque les flèches. Le Sapeur fait exploser les groupes serrés.</p>
-  <h4>Progression</h4><p>Les victoires rapportent pièces et cartes. Dans Armée, montez chaque soldat jusqu’au niveau 5 : cuir, fer, acier, or, puis mythique.</p>
+  <h4>Progression</h4><p>Les victoires rapportent pièces et cartes. Dans Armée, montez chaque soldat jusqu’au niveau 5 : cuir, fer, acier, or, puis mythique. Un soldat amélioré coûte toujours le même prix, mais vaut beaucoup plus.</p>
   <h4>Bac à sable</h4><p>Placez jusqu’à ${MAXU} soldats des deux camps à tous les niveaux, puis lancez la bataille. Le pinceau pose 1, 6 ou 24 soldats en formation, le dé génère deux armées au hasard, et le bouton retour rejoue la même bataille.</p>
   <div class="mbtns"><button class="pb brass" id="m-x">Compris</button></div></div>`, m => m.querySelector('#m-x').onclick = closeModal);
 $('#b-set').onclick = function openSet(){
   openModal(`<h3>Réglages</h3>
     <div class="toggle"><span>Effets sonores</span><button class="pb sm ${SAV.sound ? 'green' : ''}" id="m-snd" style="width:96px">${ic(SAV.sound ? 'sound' : 'mute', 2)}${SAV.sound ? 'Oui' : 'Non'}</button></div>
     <div class="mbtns"><button class="pb red" id="m-rst">Effacer la progression</button><button class="pb ghost" id="m-x">Fermer</button></div>
-    <p style="text-align:center;font-size:14px;color:var(--mut);margin-top:12px">Légion Pixel · v2.2 · sauvegarde locale</p>`, m => {
+    <p style="text-align:center;font-size:14px;color:var(--mut);margin-top:12px">Légion Pixel · v3.0 · sauvegarde locale</p>`, m => {
     m.querySelector('#m-snd').onclick = () => { SAV.sound = !SAV.sound; save(); openSet(); sfx('click'); };
     m.querySelector('#m-rst').onclick = () => confirmBox('Tout effacer ?', 'Pièces, cartes, niveaux et étoiles seront perdus définitivement.', 'Effacer', () => {
       localStorage.removeItem(SAVE_KEY); SAV = defSave(); save(); refreshGold(); updateHome(); scene.list = []; sizeScene();
@@ -125,5 +126,16 @@ sizeScene();
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
 if (isIOS && !standalone) $('#install-hint').classList.remove('hidden');
+// iOS en mode app : la hauteur rapportée oublie parfois la barre d'état et laisse une bande vide en bas
+function fitApp(){
+  const app = $('#app');
+  if (!standalone) { app.style.height = ''; app.style.bottom = ''; return; }
+  const portraitMode = matchMedia('(orientation: portrait)').matches;
+  const h = Math.max(window.innerHeight, document.documentElement.clientHeight, isIOS ? (portraitMode ? screen.height : screen.width) : 0);
+  app.style.bottom = 'auto'; app.style.height = h + 'px';
+}
+fitApp();
+window.addEventListener('resize', fitApp);
+window.addEventListener('orientationchange', () => setTimeout(() => { fitApp(); resize(); sizeScene(); }, 300));
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });

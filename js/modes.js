@@ -1,31 +1,98 @@
 /* Légion Pixel — Modes de jeu : campagne, bac à sable, panneau, contrôles tactiles et boucle */
 'use strict';
-/* ---------- CAMPAGNE ---------- */
+/* ---------- CAMPAGNE : 20 batailles écrites à la main ---------- */
+// bloc ennemi : [type, nombre, x (0 = gauche, 1 = droite), rang (0 = devant, 2 = fond), colonnes, niveau?]
+// 'lord' = Seigneur de guerre (boss géant)
+const LEVELS = [
+  {n:'Premier sang', lv:1, d:'Une patrouille ennemie barre la route des plaines.',
+    h:'Choisissez l’Épéiste, peignez des soldats dans la zone bleue puis touchez Combattre. Moins vous dépensez, plus vous gagnez d’étoiles.',
+    b:[['sword', 10, .5, 0, 5]]},
+  {n:'Pluie de flèches', lv:1, d:'Des archères abritées derrière quelques épéistes.',
+    h:'Les archères sont fragiles mais tirent de loin. Attaquez par les côtés pour les atteindre vite.',
+    b:[['sword', 6, .5, 0, 6], ['archer', 12, .5, 2, 6]]},
+  {n:'La ligne', lv:1, d:'Une vraie ligne de bataille. Vos Lanciers sont arrivés.',
+    h:'Le Lancier ignore l’armure et touche aussi le soldat derrière sa cible : parfait contre une ligne serrée.',
+    b:[['sword', 10, .25, 0, 5], ['sword', 10, .75, 0, 5], ['archer', 10, .5, 2, 5]]},
+  {n:'Embuscade', lv:1, d:'L’ennemi a caché des troupes sur ses flancs.',
+    h:'Ne mettez pas tout au centre : gardez des soldats sur les côtés pour ne pas être encerclé.',
+    b:[['sword', 12, .12, 0, 3], ['sword', 12, .88, 0, 3], ['spear', 8, .5, 0, 4], ['archer', 12, .5, 2, 6]]},
+  {n:'Le Seigneur des Plaines', lv:1, d:'Un Seigneur de guerre géant mène l’armée des plaines.',
+    h:'Le Seigneur encaisse énormément et balaie tout autour de lui. Les Lanciers ignorent son armure : entourez-le.',
+    b:[['lord', 1, .5, 1, 1, 2], ['sword', 10, .25, 0, 5], ['sword', 10, .75, 0, 5], ['archer', 14, .5, 2, 7]]},
+
+  {n:'Le mur de lances', lv:2, d:'Un mur de piques sur toute la largeur. Le Gardien rejoint votre armée.',
+    h:'Les charges s’y brisent. Arrosez-le d’archères et faites tenir la ligne par un Gardien, qui attire les coups.',
+    b:[['spear', 24, .5, 0, 12], ['archer', 10, .5, 2, 10]]},
+  {n:'Les fantômes de la forêt', lv:2, d:'Des dizaines d’archères cachées dans la brume.',
+    h:'Le Gardien bloque les flèches qui arrivent de face. Placez-en devant vos troupes.',
+    b:[['sword', 8, .5, 0, 8], ['archer', 14, .2, 1, 7], ['archer', 14, .8, 1, 7], ['archer', 10, .5, 2, 5]]},
+  {n:'Bouclier contre bouclier', lv:2, d:'L’ennemi avance derrière ses propres Gardiens.',
+    h:'Les Gardiens résistent à presque tout, sauf aux Lanciers qui ignorent leur armure.',
+    b:[['guard', 4, .5, 0, 4], ['spear', 16, .5, 1, 8], ['archer', 14, .5, 2, 7]]},
+  {n:'La horde', lv:2, d:'Une marée d’épéistes déferle sur la forêt.',
+    h:'Tenez une ligne continue de Lanciers appuyée par des Gardiens : une horde éparpillée se fait découper.',
+    b:[['sword', 18, .18, 0, 6], ['sword', 18, .5, 0, 6], ['sword', 18, .82, 0, 6]]},
+  {n:'Le Roi Sylvain', lv:2, d:'Le roi de la forêt défend son trône. Vos Sapeurs sont arrivés.',
+    h:'Les Sapeurs font exploser les groupes serrés : idéal contre l’escorte du roi. Gardez-les loin du Seigneur.',
+    b:[['lord', 1, .5, 1, 1, 3], ['guard', 4, .5, 0, 4], ['spear', 12, .18, 0, 6], ['spear', 12, .82, 0, 6], ['archer', 18, .5, 2, 9]]},
+
+  {n:'Artillerie', lv:3, d:'Des Sapeurs pilonnent depuis l’arrière des dunes.',
+    h:'Les explosions punissent les troupes serrées : étalez vos soldats en lignes fines et foncez sur les Sapeurs.',
+    b:[['guard', 4, .5, 0, 4], ['sword', 16, .5, 0, 8], ['bomber', 10, .5, 2, 5]]},
+  {n:'Tempête de sable', lv:3, d:'Une armée de tireurs vous attend dans les dunes.',
+    h:'Avancez vite : des Épéistes en Charge atteignent l’arrière avant que la pluie de flèches ne fasse trop de dégâts.',
+    b:[['spear', 16, .5, 0, 8], ['bomber', 6, .5, 1, 6], ['archer', 16, .25, 2, 8], ['archer', 16, .75, 2, 8]]},
+  {n:'Le carré', lv:3, d:'Une formation compacte, hérissée de piques.',
+    h:'Un groupe aussi serré est le rêve d’un Sapeur.',
+    b:[['spear', 24, .5, 0, 8], ['guard', 6, .5, 1, 6], ['archer', 18, .5, 2, 9]]},
+  {n:'Double front', lv:3, d:'Deux colonnes avancent sur vos flancs.',
+    h:'Gardez le centre léger et doublez vos défenses sur les côtés.',
+    b:[['sword', 24, .18, 0, 6], ['sword', 24, .82, 0, 6], ['archer', 12, .5, 1, 6], ['bomber', 8, .5, 2, 4]]},
+  {n:'Le Sultan des Dunes', lv:3, d:'Le maître des sables et ses artificiers.',
+    h:'Ne groupez pas vos troupes face aux Sapeurs, et gardez de quoi achever le Seigneur.',
+    b:[['lord', 1, .5, 1, 1, 4], ['spear', 20, .5, 0, 10], ['bomber', 4, .18, 1, 4], ['bomber', 4, .82, 1, 4], ['archer', 20, .5, 2, 10]]},
+
+  {n:'Les loups de l’hiver', lv:4, d:'Des épéistes aguerris surgissent du blizzard.',
+    h:'Ils frappent fort. Si ça coince, montez vos soldats au rang Or dans l’Armée.',
+    b:[['sword', 20, .3, 0, 10], ['sword', 20, .7, 1, 10], ['archer', 20, .5, 2, 10, 3]]},
+  {n:'Forteresse de glace', lv:4, d:'Un rempart de Gardiens protège une armée de tireurs.',
+    h:'Contournez le rempart par les côtés, ou percez-le avec des Lanciers.',
+    b:[['guard', 8, .5, 0, 8], ['bomber', 8, .5, 1, 8, 3], ['archer', 30, .5, 2, 10, 3]]},
+  {n:'Le grand assaut', lv:4, d:'La plus grande armée que vous ayez affrontée.',
+    h:'Pas de recette unique : observez sa composition et répondez arme par arme.',
+    b:[['sword', 24, .18, 0, 8], ['guard', 4, .5, 0, 4], ['spear', 24, .82, 0, 8], ['bomber', 8, .5, 1, 8, 3], ['archer', 24, .5, 2, 12, 3]]},
+  {n:'La garde royale', lv:4, d:'L’élite de l’Empereur tient le col.',
+    h:'Les Lanciers percent les Gardiens, les Sapeurs ravagent les rangs serrés derrière.',
+    b:[['guard', 10, .5, 0, 10], ['spear', 24, .5, 1, 12], ['archer', 20, .5, 2, 10]]},
+  {n:'L’Empereur de Givre', lv:4, d:'Le dernier Seigneur de guerre. Tout se joue ici.',
+    h:'Gagnez en dépensant le moins possible pour décrocher les trois étoiles.',
+    b:[['lord', 1, .5, 1, 1, 5], ['guard', 6, .5, 0, 6], ['spear', 20, .18, 0, 5], ['spear', 20, .82, 0, 5], ['bomber', 4, .15, 2, 4], ['bomber', 4, .85, 2, 4], ['archer', 24, .5, 2, 12]]}
+];
+const LORD_COST = 300, BUDGET_X = 1.5, STAR3 = .64, STAR2 = .8;
+const r10 = v => Math.round(v / 10) * 10;
 function levelDef(i){
-  const rng = mulberry32(i * 7919 + 13), boss = i % 5 === 0;
-  const avail = TYPES.filter(t => UT[t].unlock < i);
-  const n = Math.min(8, 3 + Math.floor((i - 1) / 3)) + (boss ? 1 : 0);
-  const base = Math.min(5, 1 + Math.floor((i - 1) / 4));
-  const squads = [], newest = avail[avail.length - 1];
-  for (let k = 0; k < n; k++) {
-    let type = avail[Math.floor(rng() * avail.length)];
-    if (k === 1 && avail.length > 2) type = newest;
-    let lvl = base; const rr = rng();
-    if (boss && rr < .4) lvl = Math.min(5, base + 1); else if (rr < .22 && base > 1) lvl = base - 1;
-    // position libre : profondeur selon le rôle (0 = front, 1 = fond)
-    const T = UT[type], dRange = T.proj ? [.55, 1] : type === 'spear' ? [.1, .5] : [0, .35];
-    let nx = 0, d = 0;
-    for (let tries = 0; tries < 30; tries++) {
-      nx = .08 + rng() * .84; d = dRange[0] + rng() * (dRange[1] - dRange[0]);
-      if (!squads.some(s => Math.abs(s.nx - nx) < .18 && Math.abs(s.d - d) < .3)) break;
-    }
-    squads.push({type, lvl, nx, d});
-  }
-  return {i, boss, ch:Math.floor((i - 1) / 5), n:squads.length, squads, base};
+  const L = LEVELS[i - 1], ch = Math.floor((i - 1) / 5);
+  const blocks = L.b.map(([type, n, x, row, cols, lv]) => ({type, n, x, row, cols, lvl:lv || L.lv}));
+  // un Seigneur plus gradé que son armée vaut plus cher
+  const value = blocks.reduce((s, k) => s + (k.type === 'lord' ? LORD_COST * Math.pow(1.3, k.lvl - L.lv - 1) : UT[k.type].cost * k.n), 0);
+  const budget = r10(value * BUDGET_X);
+  return {i, ch, boss:i % 5 === 0, name:L.n, desc:L.d, hint:L.h, blocks, count:blocks.reduce((s, k) => s + k.n, 0),
+    budget, s3:r10(budget * STAR3), s2:r10(budget * STAR2)};
 }
-function enemyPos(s){
+const starsFor = (d, spent) => spent <= d.s3 ? 3 : spent <= d.s2 ? 2 : 1;
+// l'armée ennemie se range en formations, rang par rang
+function spawnEnemies(d){
   const z = zone('red');
-  return clampSquad(s.type, 'red', Math.round(22 + s.nx * (G.W - 44)), Math.round(z.y1 - 8 - s.d * (z.y1 - z.y0 - 16)));
+  d.blocks.forEach(k => {
+    const ay = z.y1 - 10 - k.row * 28, cx = k.x * G.W;
+    if (k.type === 'lord') { const u = makeLord(k.lvl, 'red', cx, clamp(ay - 4, z.y0 + 14, z.y1)); u.drop = .9; units.push(u); return; }
+    const sp = k.type === 'guard' ? 20 : 11, sy = k.type === 'guard' ? 18 : 10;
+    for (let j = 0; j < k.n; j++) {
+      const col = j % k.cols, row = Math.floor(j / k.cols);
+      const x = clamp(cx + (col - (k.cols - 1) / 2) * sp, 8, G.W - 8), y = clamp(ay - row * sy, z.y0 + 4, z.y1);
+      const u = makeUnit(k.type, k.lvl, 'red', x + (rnd() - .5) * 2, y); u.drop = .2 + rnd() * .7; units.push(u);
+    }
+  });
 }
 // bannière de chapitre : le terrain du chapitre et quelques ennemis typiques
 const banCache = {};
@@ -34,9 +101,9 @@ function chapterBanner(ci){
   const W = 120, H = 34, c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
   x.drawImage(genGround(CHAPTERS[ci].theme, W, H, ci * 13 + 4), 0, 0);
-  const boss = levelDef(ci * 5 + 5).squads;
+  const types = levelDef(ci * 5 + 5).blocks.filter(k => k.type !== 'lord');
   [0, 1, 2].forEach(k => {
-    const s = boss[k % boss.length];
+    const s = types[k % types.length];
     drawUnitAt(x, {type:s.type, lvl:s.lvl, team:'red', face:-1, atk:0, moving:false, walk:0, flash:0, id:k, cd:0, cdMax:1, aim:-.2}, W - 14 - k * 17, H - 3 - (k % 2) * 2, 0);
   });
   banCache[ci] = c; return cloneCanvas(c);
@@ -62,59 +129,68 @@ function buildStory(){
   el.querySelectorAll('.node').forEach(b => b.onclick = () => { sfx('click'); levelModal(+b.dataset.l); });
   const curN = el.querySelector('.node.cur'); if (curN) curN.scrollIntoView({block:'center'});
 }
+const goldFor = (i, first) => first ? 40 + i * 12 : Math.round((40 + i * 12) / 2);
 function levelModal(i){
-  const d = levelDef(i), grp = {};
-  d.squads.forEach(s => { const k = s.type + s.lvl; grp[k] = grp[k] || {type:s.type, lvl:s.lvl, n:0}; grp[k].n++; });
-  const first = SAV.cleared < i;
-  openModal(`<div class="mc"><div class="chban" id="lban" style="width:100%;margin:6px 0 0"><div class="chn"><small>CHAPITRE ${d.ch + 1}${d.boss ? ' · BOSS' : ''}</small><b>${d.boss ? 'Boss ' : 'Niveau '}${lvLabel(i)}</b></div></div>
-    <p style="text-align:center">Les éclaireurs repèrent <b>${d.n} escouades</b> ennemies. Vous en recruterez autant, une par manche.</p>
+  const d = levelDef(i), grp = {}, first = SAV.cleared < i, best = SAV.stars[i] || 0;
+  d.blocks.forEach(k => { const key = k.type + k.lvl; grp[key] = grp[key] || {type:k.type, lvl:k.lvl, n:0}; grp[key].n += k.n; });
+  openModal(`<div class="mc"><div class="chban" id="lban" style="width:100%;margin:6px 0 0"><div class="chn"><small>CHAPITRE ${d.ch + 1}${d.boss ? ' · BOSS' : ''} · ${lvLabel(i)}</small><b>${d.name}</b></div></div>
+    <p style="text-align:center;margin:2px 0">${d.desc}</p>
+    <div class="tip">${ic('help', 2)}<span>${d.hint}</span></div>
+    <div class="kick">ARMÉE ENNEMIE · ${d.count} SOLDATS</div>
     <div class="eprev" id="ep"></div>
-    <div class="kick">${first ? 'RÉCOMPENSES · PREMIÈRE VICTOIRE' : 'RÉCOMPENSES'}</div>
-    <div class="rew"><span class="pill">${ic('coin', 2)} ${first ? 40 + i * 12 : Math.round((40 + i * 12) / 2)}</span><span class="pill">${ic('chest', 2)} ${first ? 3 + Math.floor(i / 3) : 2} cartes</span></div>
-    <div class="mbtns"><button class="pb big brass" id="m-play" data-ic="swords">Combattre</button><button class="pb ghost" id="m-x">Retour</button></div></div>`, m => {
+    <div class="kick">OBJECTIFS ${best ? '· MEILLEUR ' + '★'.repeat(best) : ''}</div>
+    <div class="goals">
+      <div><span>${starsHtml(1, 2)}</span><b>Victoire</b></div>
+      <div><span>${starsHtml(2, 2)}</span><b>≤ ${d.s2}</b></div>
+      <div><span>${starsHtml(3, 2)}</span><b>≤ ${d.s3}</b></div>
+    </div>
+    <p style="text-align:center;font-size:14px;color:var(--mut);margin:0">Budget de recrutement : <b style="color:var(--gold)">${d.budget}</b>. Les étoiles dépendent de ce que vous dépensez.</p>
+    <div class="rew"><span class="pill">${ic('coin', 2)} ${goldFor(i, first)}</span><span class="pill">${ic('chest', 2)} ${first ? 3 + Math.floor(i / 3) : 2} cartes</span></div>
+    <div class="mbtns"><button class="pb big brass" id="m-play" data-ic="swords">Déployer l’armée</button><button class="pb ghost" id="m-x">Retour</button></div></div>`, m => {
     m.querySelector('#lban').prepend(chapterBanner(d.ch));
     const ep = m.querySelector('#ep');
-    Object.values(grp).forEach(g => { const dv = document.createElement('div'); dv.appendChild(portrait(g.type, g.lvl, 'red', 1)); dv.insertAdjacentHTML('beforeend', `<span>${g.n}× Nv${g.lvl}</span>`); ep.appendChild(dv); });
+    Object.values(grp).forEach(g => {
+      const dv = document.createElement('div'), lord = g.type === 'lord';
+      dv.appendChild(portrait(lord ? 'guard' : g.type, g.lvl, 'red', lord ? 2 : 1));
+      if (lord) dv.classList.add('lord');
+      dv.insertAdjacentHTML('beforeend', `<span>${lord ? 'SEIGNEUR' : g.n + '×'} Nv${g.lvl}</span>`); ep.appendChild(dv);
+    });
     m.querySelector('#m-play').onclick = () => { closeModal(); startStory(i); };
     m.querySelector('#m-x').onclick = closeModal;
   });
 }
+// l'armée déployée est mémorisée par niveau pour pouvoir la retoucher entre deux essais
+function saveArmy(i){
+  SAV.armies = SAV.armies || {};
+  SAV.armies[i] = units.filter(u => u.team === 'blue').map(u => [TYPES.indexOf(u.type), Math.round(u.x), Math.round(u.y)]);
+  save();
+}
+function restoreArmy(i){
+  const a = SAV.armies && SAV.armies[i]; if (!a) return 0;
+  let n = 0;
+  for (const [ti, x, y] of a) {
+    const t = TYPES[ti], c = SAV.cards[t]; if (!c || !c.u || B.spent + UT[t].cost > B.budget) continue;
+    const u = makeUnit(t, c.lvl, 'blue', x, y); u.cost = UT[t].cost; u.drop = .1 + rnd() * .3; units.push(u); B.spent += u.cost; n++;
+  }
+  return n;
+}
 function startStory(i){
   closeModal();
   const def = levelDef(i);
-  B = {mode:'story', def, round:0, rounds:def.n, phase:'draft', offers:[], sel:null, rerolls:1, speed:1, ended:false, shown:false,
-    theme:CHAPTERS[def.ch].theme, seed:i * 31 + 5, squads:[], msg:'', ghost:null};
+  B = {mode:'story', def, phase:'deploy', budget:def.budget, spent:0, type:TYPES.find(t => SAV.cards[t].u), brush:6, erase:false, speed:1,
+    ended:false, shown:false, theme:CHAPTERS[def.ch].theme, seed:i * 31 + 5, squads:[]};
   resetWorld(); go('battle');
-  $('#b-title').textContent = `${def.boss ? 'Boss ' : 'Niveau '}${lvLabel(i)}`;
-  nextRound();
-}
-function makeOffers(){
-  const av = TYPES.filter(t => SAV.cards[t].u), pool = av.slice(), out = [];
-  for (let k = 0; k < 3; k++) { if (!pool.length) pool.push(...av); const t = pool.splice(Math.floor(rnd() * pool.length), 1)[0]; out.push({type:t, lvl:SAV.cards[t].lvl}); }
-  return out;
-}
-function nextRound(){
-  if (B.round >= B.rounds) { B.phase = 'ready'; B.sel = null; B.ghost = null; buildPanel(); return; }
-  const s = B.def.squads[B.round], [x, y] = enemyPos(s);
-  spawnSquad(s.type, s.lvl, 'red', x, y);
-  B.msg = `L’ennemi déploie : <b>${UT[s.type].name} Nv${s.lvl}</b>. À vous !`;
-  B.offers = makeOffers(); B.sel = null; B.ghost = null; buildPanel();
-}
-function ghostAt(p){
-  const o = B.offers[B.sel]; if (!o) return null;
-  const [x, y] = clampSquad(o.type, 'blue', p.x, p.y);
-  return {x, y, ok:squadFree(o.type, 'blue', x, y)};
-}
-function placeAt(p){
-  if (B.sel == null) { toast('Choisissez d’abord une carte'); sfx('err'); return; }
-  const g = ghostAt(p);
-  if (!g.ok) { toast('Trop près d’une autre escouade'); sfx('err'); return; }
-  const o = B.offers[B.sel];
-  spawnSquad(o.type, o.lvl, 'blue', g.x, g.y); sfx('place');
-  B.round++; nextRound();
+  $('#b-title').textContent = `${lvLabel(i)} · ${def.name}`;
+  spawnEnemies(def);
+  const n = restoreArmy(i);
+  buildPanel();
+  toast(n ? 'Votre armée précédente est en place' : 'Peignez vos soldats dans la zone bleue');
 }
 function startFight(){
-  B.phase = 'fight'; B.startBlue = alive('blue'); B.ended = false; B.ghost = null;
+  if (!alive('blue')) { toast('Déployez au moins un soldat'); sfx('err'); return; }
+  saveArmy(B.def.i);
+  B.phase = 'fight'; B.startBlue = alive('blue'); B.ended = false; B.erase = false;
+  for (const u of units) u.drop = 0;
   sfx('horn'); buildPanel();
   if (!SAV.tipCam) { SAV.tipCam = 1; save(); toast('À l’attaque ! Pincez pour zoomer'); } else toast('À l’attaque !');
 }
@@ -126,24 +202,29 @@ function rollCards(n){
 function lootHtml(got){ return `<div class="loot" id="loot">${Object.keys(got).map((t, i) => `<div data-t="${t}" style="animation-delay:${i * .12}s"><span>+${got[t]}</span></div>`).join('')}</div>`; }
 function fillLoot(m){ m.querySelectorAll('#loot div').forEach(d => d.insertBefore(portrait(d.dataset.t, SAV.cards[d.dataset.t].lvl, 'blue', 2), d.firstChild)); }
 function endStory(win){
-  const i = B.def.i, ratio = alive('blue') / Math.max(1, B.startBlue);
-  const stars = win ? (ratio >= .6 ? 3 : ratio >= .3 ? 2 : 1) : 0;
+  const d = B.def, i = d.i, spent = B.spent;
+  const stars = win ? starsFor(d, spent) : 0, prev = SAV.stars[i] || 0;
   const first = win && SAV.cleared < i;
-  const gold = win ? (first ? 40 + i * 12 : Math.round((40 + i * 12) / 2)) : 10 + i * 2;
+  const bonus = Math.max(0, stars - prev) * 15;
+  const gold = win ? goldFor(i, first) + bonus : 10 + i * 2;
   SAV.gold += gold;
   const unlocked = [];
   if (first) { SAV.cleared = i; for (const t of TYPES) if (UT[t].unlock === i && !SAV.cards[t].u) { SAV.cards[t].u = true; unlocked.push(t); } }
   const got = win ? rollCards(first ? 3 + Math.floor(i / 3) : 2) : {};
-  if (win) SAV.stars[i] = Math.max(SAV.stars[i] || 0, stars);
+  if (win) SAV.stars[i] = Math.max(prev, stars);
   save(); sfx(win ? 'win' : 'lose');
+  const next = stars === 1 ? d.s2 : stars === 2 ? d.s3 : 0;
   openModal(`<div class="mc"><div id="bn"></div>
-    ${win ? `<div class="stars3">${starsHtml(stars, 5)}</div>` : `<p style="text-align:center">Améliorez vos soldats dans l’Armée, ou contrez mieux les escouades ennemies.</p>`}
-    <div class="rew"><span class="pill">${ic('coin', 2)} +${gold}</span></div>
+    ${win ? `<div class="stars3">${starsHtml(stars, 5)}</div>
+      <p style="text-align:center;margin:0">Recrutement : <b style="color:var(--gold)">${spent}</b> / ${d.budget} pièces</p>
+      ${next ? `<div class="tip">${ic('star', 2)}<span>Pour ${stars + 1} étoiles, gagnez en dépensant au plus <b>${next}</b>.</span></div>` : ''}`
+    : `<div class="tip">${ic('help', 2)}<span>${d.hint}</span></div><p style="text-align:center;margin:0;color:var(--mut)">Retouchez votre armée, ou renforcez vos soldats dans l’onglet Armée.</p>`}
+    <div class="rew"><span class="pill">${ic('coin', 2)} +${gold}</span>${bonus ? `<span class="pill">${ic('star', 2)} bonus +${bonus}</span>` : ''}</div>
     ${win ? lootHtml(got) : ''}
     ${unlocked.map(t => `<div class="pp nu"><b>NOUVEAU SOLDAT : ${UT[t].name.toUpperCase()}</b><div id="nu-${t}"></div><div style="font-size:15px;color:var(--mut)">${UT[t].ab} — ${UT[t].abd}</div></div>`).join('')}
     <div class="mbtns">
-      ${win && i < NLEV ? `<button class="pb big brass" id="m-next" data-ic="play">Niveau suivant</button>` : ''}
-      <button class="pb ${win ? '' : 'brass big'}" id="m-retry" data-ic="undo">Rejouer</button>
+      ${win && i < NLEV ? `<button class="pb big brass" id="m-next" data-ic="play">Bataille suivante</button>` : ''}
+      <button class="pb ${win ? '' : 'brass big'}" id="m-retry" data-ic="undo">${win ? 'Rejouer pour les étoiles' : 'Retoucher l’armée'}</button>
       <button class="pb ghost" id="m-cont" data-ic="flag">Carte de campagne</button>
     </div></div>`, m => {
     $('#mbox').dataset.lock = '1';
@@ -165,22 +246,33 @@ function startSandbox(){
   toast('Touchez ou glissez sur le terrain');
 }
 let painting = false, lastPaint = null;
+const freeSpot = (x, y, team) => !units.some(u => u.team === team && Math.abs(u.x - x) < 7 && Math.abs(u.y - y) < 6);
 function paintAt(p){
+  const story = B.mode === 'story', team = story ? 'blue' : B.team;
   if (B.erase) {
     let hit = false;
-    for (const u of units) if (Math.hypot(u.x - p.x, u.y - 10 - p.y) < 13) { u.dead = true; hit = true; }
-    if (hit) { units = units.filter(u => !u.dead); burst(p.x, p.y, ['#d8cfc0'], 5, 30, .3, 40, 10); }
+    for (const u of units) if ((!story || u.team === 'blue') && Math.hypot(u.x - p.x, u.y - 10 - p.y) < 13) { u.dead = true; hit = true; if (story) B.spent -= u.cost || 0; }
+    if (hit) { units = units.filter(u => !u.dead); burst(p.x, p.y, ['#d8cfc0'], 5, 30, .3, 40, 10); if (story) updBudget(); }
     return;
   }
+  const z = zone('blue');
+  if (story && p.y + 10 < z.y0 - 24) { toast('Placez vos soldats dans la zone bleue'); sfx('err'); return; }
   if (units.length >= MAXU) { toast(`Maximum ${MAXU} soldats`); return; }
   // pinceau en formation : rangs serrés comme une vraie armée
   const n = B.brush, cols = n === 1 ? 1 : n === 6 ? 3 : 6, sp = B.type === 'guard' ? 20 : 11;
+  const lvl = story ? SAV.cards[B.type].lvl : B.lvl, cost = story ? UT[B.type].cost : 0;
+  let placed = 0, broke = false;
   for (let k = 0; k < n && units.length < MAXU; k++) {
     const ox = ((k % cols) - (cols - 1) / 2) * sp, oy = (Math.floor(k / cols) - (Math.ceil(n / cols) - 1) / 2) * sp * .9;
-    const u = makeUnit(B.type, B.lvl, B.team, clamp(p.x + ox + (rnd() - .5) * 2, 6, G.W - 6), clamp(p.y + 10 + oy, 36, G.Hw - 2));
-    u.drop = .15 + rnd() * .15; units.push(u);
+    const x = clamp(p.x + ox + (rnd() - .5) * 2, 6, G.W - 6), y = story ? clamp(p.y + 10 + oy, z.y0 + 4, z.y1) : clamp(p.y + 10 + oy, 36, G.Hw - 2);
+    if (!freeSpot(x, y, team)) continue;
+    if (story && B.spent + cost > B.budget) { broke = true; break; }
+    const u = makeUnit(B.type, lvl, team, x, y); u.cost = cost;
+    u.drop = .15 + rnd() * .15; units.push(u); placed++; if (story) B.spent += cost;
   }
-  sfx('place');
+  if (placed) sfx('place');
+  if (broke) { toast('Budget épuisé'); if (!placed) sfx('err'); }
+  if (story) updBudget();
 }
 const BRUSHES = [1, 6, 24];
 // bataille aléatoire : deux armées rangées (mêlée devant, tireurs derrière)
@@ -217,7 +309,7 @@ function sbRestore(){
 const bp = $('#bpanel');
 function updHud(){
   const sub = $('#b-sub');
-  if (B.mode === 'story') sub.textContent = B.phase === 'draft' ? `Manche ${B.round + 1} sur ${B.rounds}` : B.phase === 'ready' ? 'Armées prêtes' : 'Bataille en cours';
+  if (B.mode === 'story') sub.textContent = B.phase === 'deploy' ? 'Déployez votre armée' : 'Bataille en cours';
   else sub.textContent = B.run ? 'Bataille en cours' : 'Placez les deux armées';
 }
 function powerOf(team){ let s = 0; for (const u of units) if (u.team === team) s += u.hp / (1 - u.armor) * u.dmg / u.cdMax; return s; }
@@ -231,27 +323,41 @@ function updatePower(){
   const b = powerOf('blue'), r = powerOf('red'), pct = b + r ? b / (b + r) * 100 : 50, l = w.querySelectorAll('b');
   w.querySelector('i').style.width = pct + '%'; l[0].textContent = `Vous ${Math.round(pct)}%`; l[1].textContent = `${Math.round(100 - pct)}% Ennemi`;
 }
-let dragCard = null;
+// jauge de budget : ce qui est dépensé, avec les seuils des étoiles
+function updBudget(){
+  const d = B.def, v = $('#bud-v'), i = $('#bud-i'); if (!v) return;
+  const left = B.budget - B.spent, st = starsFor(d, B.spent);
+  v.textContent = left; i.style.width = B.spent / B.budget * 100 + '%';
+  i.className = st === 3 ? 's3' : st === 2 ? 's2' : 's1';
+  $('#bud-s').innerHTML = alive('blue') ? starsHtml(st, 2) : '';
+  $('#cnt-b').lastChild.textContent = alive('blue');
+}
 function buildPanel(){
-  bp.classList.toggle('compact', B.mode === 'story' && B.phase !== 'draft' && B.phase !== 'ready');
+  bp.classList.toggle('compact', B.mode === 'story' && B.phase !== 'deploy');
   if (B.mode === 'story') {
-    if (B.phase === 'draft') {
-      const o = B.sel != null ? B.offers[B.sel] : null;
-      bp.innerHTML = `<div class="phead"><div class="phint">${o ? `<b>${UT[o.type].ab}</b> : ${UT[o.type].abd}` : B.msg}</div>
-        <button class="pb sm" id="b-rr" ${B.rerolls ? '' : 'disabled'} style="width:64px;flex:none">${ic('dice', 2)}${B.rerolls}</button></div>
-        <div class="cards">${B.offers.map((o, k) => `<div class="dcard pp ${B.sel === k ? 'sel' : ''}" data-k="${k}" style="--tier:var(--t${o.lvl})"><div class="pc"></div>
-        <div class="dn">${UT[o.type].name}</div><div class="dl">${[1,2,3,4,5].map(l => `<i class="${l <= o.lvl ? 'on' : ''}"></i>`).join('')}</div>
-        <div class="dr">${ic(UT[o.type].ic, 2)} ×${UT[o.type].squad}</div></div>`).join('')}</div>`;
-      bp.querySelectorAll('.dcard').forEach(d => {
-        const k = +d.dataset.k, o = B.offers[k];
-        d.querySelector('.pc').appendChild(portrait(o.type, o.lvl, 'blue', 2));
-        d.addEventListener('pointerdown', e => { dragCard = {k, x:e.clientX, y:e.clientY, moved:false, id:e.pointerId}; try { d.releasePointerCapture(e.pointerId); } catch(_) {} });
+    if (B.phase === 'deploy') {
+      const d = B.def;
+      bp.innerHTML = `<div class="budget"><span class="bv">${ic('coin', 2)}<b id="bud-v"></b></span>
+          <div class="bbar"><i id="bud-i"></i><em style="left:${d.s3 / d.budget * 100}%"></em><em style="left:${d.s2 / d.budget * 100}%"></em></div><span id="bud-s" class="bst"></span></div>
+        <div class="sbu">${TYPES.map(t => { const c = SAV.cards[t]; return `<button data-t="${t}" class="pb ${B.type === t && !B.erase ? 'on' : ''}" ${c.u ? '' : 'disabled'} aria-label="${UT[t].name}">
+          ${c.u ? `<span class="cost">${ic('coin', 1)}${UT[t].cost}</span>` : `<span class="cost">${ic('lock', 1)}</span>`}</button>`; }).join('')}</div>
+        <div class="sbr">
+          <button class="pb sm" id="sb-br">${ic('person', 2)}×${B.brush}</button>
+          <button class="pb sm ${B.erase ? 'on' : ''}" id="sb-er" aria-label="Gomme">${ic('erase', 2)}</button>
+          <button class="pb sm" id="sb-cl" aria-label="Tout retirer">${ic('trash', 2)}</button>
+          <button class="pb green fightb" id="b-fight">${ic('swords', 2)}Combattre</button>
+        </div>`;
+      bp.querySelectorAll('.sbu button').forEach(b => {
+        const t = b.dataset.t, c = SAV.cards[t];
+        b.prepend(portrait(t, c.lvl, 'blue', 2));
+        if (c.u) b.style.setProperty('--tier', `var(--t${c.lvl})`);
+        b.onclick = () => { if (!c.u) return; B.type = t; B.erase = false; sfx('click'); buildPanel(); toast(`${UT[t].name} Nv${c.lvl} · ${UT[t].cost} pièces par soldat`); };
       });
-      bp.querySelector('#b-rr').onclick = () => { if (!B.rerolls) return; B.rerolls--; B.offers = makeOffers(); B.sel = null; sfx('coin'); buildPanel(); };
-    } else if (B.phase === 'ready') {
-      bp.innerHTML = `<div class="pbig"><div class="phint" style="text-align:center">Toutes les escouades sont en place. Rapport de force estimé :</div>${powerBar()}
-        <button class="pb big brass" id="b-fight" data-ic="swords">Lancer la bataille</button></div>`;
+      bp.querySelector('#sb-br').onclick = () => { B.brush = BRUSHES[(BRUSHES.indexOf(B.brush) + 1) % BRUSHES.length]; B.erase = false; sfx('click'); buildPanel(); };
+      bp.querySelector('#sb-er').onclick = () => { B.erase = !B.erase; sfx('click'); buildPanel(); };
+      bp.querySelector('#sb-cl').onclick = () => { units = units.filter(u => u.team !== 'blue'); B.spent = 0; sfx('click'); updBudget(); };
       bp.querySelector('#b-fight').onclick = startFight;
+      decorate(bp); updHud(); updBudget(); return;
     } else {
       bp.innerHTML = `<div class="frow"><div id="pwrap">${powerBar()}</div>
         <button class="pb" id="b-spd" aria-label="Vitesse">${ic('ffwd', 2)}x${B.speed}</button></div>`;
@@ -293,29 +399,12 @@ let toastT = null;
 function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1600); }
 $('#b-quit').onclick = () => {
   if (B.mode === 'sandbox') { B = null; go('menu'); return; }
-  if (B.phase === 'end') { go('story'); return; }
+  if (B.phase === 'end' || B.phase === 'deploy') { B = null; go('story'); return; }
   confirmBox('Abandonner ?', 'La bataille sera perdue, sans récompense.', 'Abandonner', () => { B = null; go('story'); });
 };
 
 /* ---------- ENTRÉES ---------- */
 function toArt(e){ const r = cv.getBoundingClientRect(), c = G.cam; return {x:c.x + (e.clientX - r.left) / G.k / c.z, y:c.y + (e.clientY - r.top) / G.k / c.z, inside:e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom}; }
-// glisser une carte vers le terrain
-document.addEventListener('pointermove', e => {
-  if (!dragCard || !B || B.phase !== 'draft') return;
-  if (!dragCard.moved && Math.hypot(e.clientX - dragCard.x, e.clientY - dragCard.y) > 12) {
-    dragCard.moved = true; B.sel = dragCard.k;
-    bp.querySelectorAll('.dcard').forEach(d => d.classList.toggle('sel', +d.dataset.k === B.sel));
-    const o = B.offers[B.sel]; bp.querySelector('.phint').innerHTML = `<b>${UT[o.type].ab}</b> : ${UT[o.type].abd}`;
-  }
-  if (dragCard.moved) { const p = toArt(e); B.ghost = p.inside ? ghostAt({x:p.x, y:p.y - 14}) : null; }
-});
-document.addEventListener('pointerup', e => {
-  if (!dragCard || !B) { dragCard = null; return; }
-  const d = dragCard; dragCard = null;
-  if (B.phase !== 'draft') return;
-  if (d.moved) { const p = toArt(e); B.ghost = null; if (p.inside) placeAt({x:p.x, y:p.y - 14}); }
-  else { sfx('click'); B.sel = B.sel === d.k ? null : d.k; buildPanel(); }
-});
 // un doigt : placer / peindre (ou déplacer la caméra pendant le combat) ; deux doigts : zoom + déplacement
 const ptrs = new Map(); let pinch = null, panning = null, lastTap = 0;
 function zoomAround(clientX, clientY, z){
@@ -327,21 +416,16 @@ cv.addEventListener('pointerdown', e => {
   ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
   try { cv.setPointerCapture(e.pointerId); } catch(_) {}
   if (ptrs.size >= 2) {
-    painting = false; panning = null; B.ghost = null; G.camT = null;
+    painting = false; panning = null; G.camT = null;
     const [a, b] = [...ptrs.values()], r = cv.getBoundingClientRect(), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
     pinch = {d:Math.hypot(a.x - b.x, a.y - b.y) || 1, z:G.cam.z, ax:G.cam.x + (mx - r.left) / G.k / G.cam.z, ay:G.cam.y + (my - r.top) / G.k / G.cam.z};
     return;
   }
   const p = toArt(e);
-  const placing = B.mode === 'sandbox' || (B.phase === 'draft' && (B.sel != null || G.cam.z === 1));
+  const placing = B.mode === 'sandbox' || B.phase === 'deploy';
   if (!placing) {
     const now = performance.now(); if (now - lastTap < 300) camReset(); lastTap = now;
     panning = {x:e.clientX, y:e.clientY, cx:G.cam.x, cy:G.cam.y}; G.camT = null; return;
-  }
-  if (B.mode === 'story') {
-    if (B.sel == null) { toast('Choisissez d’abord une carte'); sfx('err'); return; }
-    painting = true; B.ghost = ghostAt(p);
-    return;
   }
   painting = true; lastPaint = p; paintAt(p);
 });
@@ -360,7 +444,6 @@ cv.addEventListener('pointermove', e => {
   }
   if (!painting) return;
   const p = toArt(e);
-  if (B.mode === 'story') { if (B.phase === 'draft' && B.sel != null) B.ghost = ghostAt(p); return; }
   const gap = B.erase ? 6 : B.brush > 6 ? 56 : B.brush > 1 ? 30 : 12;
   if (Math.hypot(p.x - lastPaint.x, p.y - lastPaint.y) >= gap) { lastPaint = p; paintAt(p); }
 });
@@ -368,11 +451,10 @@ const endPaint = e => {
   ptrs.delete(e.pointerId);
   if (pinch) { if (ptrs.size < 2) pinch = null; painting = false; return; }
   panning = null;
-  if (painting && B && B.mode === 'story' && B.phase === 'draft' && B.ghost) { B.ghost = null; placeAt(toArt(e)); }
   painting = false;
 };
 cv.addEventListener('pointerup', endPaint);
-cv.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); pinch = null; panning = null; painting = false; if (B) B.ghost = null; });
+cv.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); pinch = null; panning = null; painting = false; });
 cv.addEventListener('wheel', e => { e.preventDefault(); G.camT = null; zoomAround(e.clientX, e.clientY, G.cam.z * (e.deltaY < 0 ? 1.15 : 1 / 1.15)); }, {passive:false});
 document.addEventListener('gesturestart', e => e.preventDefault());
 

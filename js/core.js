@@ -1,7 +1,7 @@
 /* Légion Pixel — Données des unités, sauvegarde, son, interface pixel, écrans et menu */
 'use strict';
 /* =========================================================
-   LÉGION PIXEL — draft & bataille, 100 % pixel art, hors ligne
+   LÉGION PIXEL — batailles épiques, 100 % pixel art, hors ligne
    ========================================================= */
 const SAVE_KEY = 'legion-pixel-save-v1';
 const $ = s => document.querySelector(s);
@@ -12,23 +12,23 @@ const PX = 3; // taille d'un pixel d'interface en px CSS
 
 /* ---------- UNITÉS ---------- */
 const UT = {
-  sword: {name:'Épéiste', role:'Mêlée', ic:'atk', hp:130, dmg:17, range:8, cd:.75, spd:40, squad:6, armor:.2, r:7, unlock:0,
+  sword: {name:'Épéiste', role:'Mêlée', ic:'atk', cost:10, hp:130, dmg:17, range:8, cd:.75, spd:40, squad:6, armor:.2, r:7, unlock:0,
     ab:'Charge', abd:'Fonce sur sa cible et double les dégâts de son premier coup. Se recharge en 7 s.',
     good:'Archers, Grenadiers', bad:'Lanciers, Gardiens',
     desc:'Chevalier errant, rapide et bien protégé. Idéal pour plonger sur la ligne arrière.'},
-  archer:{name:'Archère', role:'Distance', ic:'range', hp:60, dmg:15, range:135, cd:1.4, spd:32, squad:6, armor:0, r:6, unlock:0, proj:'arrow', kite:28,
+  archer:{name:'Archère', role:'Distance', ic:'range', cost:12, hp:60, dmg:15, range:135, cd:1.4, spd:32, squad:6, armor:0, r:6, unlock:0, proj:'arrow', kite:28,
     ab:'Volée', abd:'Tire en cloche à très longue portée et recule quand un ennemi s’approche.',
     good:'Lanciers, Grenadiers', bad:'Épéistes, Gardiens',
     desc:'Éclaireuse des bois. Fragile, mais elle arrose l’ennemi bien avant le contact.'},
-  spear: {name:'Lancier', role:'Allonge', ic:'spear', hp:110, dmg:22, range:26, cd:1.3, spd:32, squad:6, armor:.15, r:7, unlock:2, pierce:true,
+  spear: {name:'Lancier', role:'Allonge', ic:'spear', cost:12, hp:110, dmg:22, range:26, cd:1.3, spd:32, squad:6, armor:.15, r:7, unlock:2, pierce:true,
     ab:'Transperce', abd:'Ignore l’armure et touche aussi l’ennemi placé derrière sa cible. Brise les charges.',
     good:'Gardiens, Épéistes', bad:'Archères, Grenadiers',
     desc:'Lansquenet à la pique interminable. Il tient la ligne et punit les cavaliers téméraires.'},
-  guard: {name:'Gardien', role:'Tank', ic:'shield', hp:560, dmg:16, range:10, cd:1.25, spd:21, squad:2, armor:.5, r:11, unlock:5, taunt:80,
+  guard: {name:'Gardien', role:'Tank', ic:'shield', cost:30, hp:560, dmg:16, range:10, cd:1.25, spd:21, squad:2, armor:.5, r:11, unlock:5, taunt:80,
     ab:'Rempart', abd:'Attire les ennemis proches, bloque les flèches de face et repousse au bouclier.',
     good:'Archères, Épéistes', bad:'Lanciers',
     desc:'Colosse en armure de plates. Seul, mais il vaut une escouade entière en défense.'},
-  bomber:{name:'Sapeur', role:'Zone', ic:'bomb', hp:75, dmg:34, range:105, minR:30, cd:2.8, spd:26, squad:4, armor:0, r:7, unlock:9, proj:'bomb', aoe:30, kite:34,
+  bomber:{name:'Sapeur', role:'Zone', ic:'bomb', cost:30, hp:75, dmg:34, range:105, minR:30, cd:2.8, spd:26, squad:4, armor:0, r:7, unlock:9, proj:'bomb', aoe:30, kite:34,
     ab:'Grenade', abd:'Vise le groupe le plus serré. L’explosion blesse et repousse. Inutile à bout portant.',
     good:'Groupes serrés, Lanciers', bad:'Épéistes, Archères',
     desc:'Artificier barbu à lunettes. Lent à recharger, dévastateur sur une formation compacte.'}
@@ -139,14 +139,14 @@ function pixEllipse(rx, ry, col){
 function drawUnitAt(c, u, X, Y, t, alpha){
   const x = Math.round(X), y = Math.round(Y), A = UNITS_ART[u.type];
   c.save(); if (alpha != null) c.globalAlpha = alpha;
-  const sw = u.type === 'guard' ? 9 : 7, sh = pixEllipse(sw, 2, 'rgba(0,0,0,.3)');
-  c.drawImage(sh, x - sw, y - 2);
-  if (u.lvl >= 5) {
-    const p = Math.floor((t * 6 + u.id) % 4);
-    const au = pixEllipse(10 + (p > 1 ? 1 : 0), 4, 'rgba(190,110,255,.28)'); c.drawImage(au, x - au.width / 2 | 0, y - 4);
+  const sc = u.sc || 1, sw = (u.type === 'guard' ? 9 : 7) * sc, sh = pixEllipse(sw, 2 * sc, 'rgba(0,0,0,.3)');
+  c.drawImage(sh, x - sw, y - 2 * sc);
+  if (u.lvl >= 5 || sc > 1) {
+    const p = Math.floor((t * 6 + u.id) % 4), col = sc > 1 ? 'rgba(255,90,60,.3)' : 'rgba(190,110,255,.28)';
+    const au = pixEllipse((10 + (p > 1 ? 1 : 0)) * sc, 4 * sc, col); c.drawImage(au, x - au.width / 2 | 0, y - 4 * sc);
   }
   c.translate(x, y);
-  c.scale(u.face || 1, 1);
+  c.scale((u.face || 1) * sc, sc);
   const p = u.atk > 0 ? 1 - u.atk : 0;
   const lean = u.atk > 0 ? Math.round(Math.sin(p * Math.PI) * 1.5) : 0;
   const bob = (!u.moving && Math.sin(t * 3 + u.id * 1.7) > .55) ? -1 : 0;
@@ -261,7 +261,7 @@ function updateBadges(){
 function updateHome(){
   const done = Math.min(SAV.cleared, NLEV), next = Math.min(NLEV, SAV.cleared + 1);
   $('#prog-t').textContent = `${done}/${NLEV}`; $('#prog-b').style.width = done / NLEV * 100 + '%';
-  $('#play-sub').textContent = SAV.cleared >= NLEV ? 'Campagne terminée !' : `Niveau ${lvLabel(next)} · ${CHAPTERS[Math.floor((next - 1) / 5)].name}`;
+  $('#play-sub').textContent = SAV.cleared >= NLEV ? 'Campagne terminée !' : `${lvLabel(next)} · ${LEVELS[next - 1].n}`;
 }
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
   sfx('click'); if (b.dataset.go === 'sandbox') startSandbox(); else go(b.dataset.go);

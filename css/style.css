@@ -18,7 +18,7 @@ html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-ac
 body{background-color:var(--bg0);
   background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1.6px),radial-gradient(130% 70% at 50% -10%,#2b1f52 0%,#151027 55%,var(--bg0) 100%);
   background-size:6px 6px,100% 100%}
-#app{position:fixed;inset:0;overflow:hidden}
+#app{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;background:inherit}
 img.ic{image-rendering:pixelated;vertical-align:middle;flex:none;display:inline-block}
 canvas{image-rendering:pixelated}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;gap:12px;
@@ -66,7 +66,7 @@ button{font:inherit;color:inherit;background:none;margin:0;padding:0;cursor:poin
 @keyframes tick{50%{transform:scale(1.15)}}
 
 /* ---- barre d'onglets ---- */
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:space-around;align-items:stretch;
+.tabbar{position:absolute;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:space-around;align-items:stretch;
   height:calc(var(--tabh) + var(--sb));padding:4px calc(var(--sr) + 6px) var(--sb) calc(var(--sl) + 6px);
   background:rgba(12,9,23,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 -3px 0 var(--bd),inset 0 3px 0 rgba(255,255,255,.05)}
 .tabbar.hidden{display:none}
@@ -206,7 +206,7 @@ button{font:inherit;color:inherit;background:none;margin:0;padding:0;cursor:poin
 .seg .pb{min-width:30px;min-height:38px;font-size:10px;padding:0 4px}
 
 /* ---- FEUILLE MODALE (glisse depuis le bas) ---- */
-.modal{position:fixed;inset:0;background:rgba(5,3,12,.7);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;z-index:50;
+.modal{position:absolute;inset:0;background:rgba(5,3,12,.7);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;z-index:50;
   padding:calc(var(--st) + 24px) calc(var(--sr)) 0 calc(var(--sl));animation:fade .2s ease-out}
 @keyframes fade{from{opacity:0}}
 .mbox{width:100%;max-width:480px;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:22px 18px calc(var(--sb) + 20px);animation:sheet .3s cubic-bezier(.2,.9,.25,1);position:relative;
@@ -246,3 +246,24 @@ button{font:inherit;color:inherit;background:none;margin:0;padding:0;cursor:poin
 .help p{font-size:16px!important}
 .nu{width:100%;text-align:center;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;--ol:var(--gold)}
 .nu b{font-family:'PS2P';font-weight:400;font-size:10px;color:var(--gold)}
+
+/* ---- déploiement de campagne ---- */
+.budget{display:flex;align-items:center;gap:10px;min-height:30px;padding:0 3px}
+.bv{display:flex;align-items:center;gap:6px;font-family:'PS2P';font-size:12px;color:var(--gold);min-width:70px}
+.bbar{flex:1;position:relative;height:14px;background:#0d0a18;box-shadow:0 0 0 3px var(--bd)}
+.bbar i{position:absolute;left:0;top:0;bottom:0;max-width:100%;transition:width .2s ease-out,background .2s;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25),inset 0 3px 0 rgba(255,255,255,.3)}
+.bbar i.s3{background:var(--green)}.bbar i.s2{background:var(--gold)}.bbar i.s1{background:var(--red)}
+.bbar em{position:absolute;top:-5px;bottom:-5px;width:3px;margin-left:-1px;background:#fff;box-shadow:0 0 0 1px var(--bd);opacity:.8}
+.bst{display:flex;min-width:54px;justify-content:flex-end}
+.sbu .pb{flex-direction:column;gap:0;--tier:transparent;box-shadow:0 -3px 0 var(--ol),0 3px 0 var(--ol),-3px 0 0 var(--ol),3px 0 0 var(--ol),0 7px 0 var(--dp),inset 0 3px 0 var(--tier),inset 0 -3px 0 var(--lo)}
+.sbu .pb .cost{position:absolute;left:0;right:0;bottom:3px;display:flex;align-items:center;justify-content:center;gap:3px;font-family:'PS2P';font-size:8px;color:var(--gold);text-shadow:1px 1px 0 #000}
+.sbu .pb.on .cost{color:#2a1800;text-shadow:none}
+.fightb{flex:2.4!important;min-height:46px;font-size:11px;gap:8px}
+.tip{display:flex;gap:10px;align-items:flex-start;width:100%;padding:10px 12px;background:var(--s2);box-shadow:inset 4px 0 0 var(--blue);font-size:15px;line-height:1.3;color:#dcd4f5}
+.tip img{margin-top:2px}
+.tip b{color:var(--gold)}
+.goals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.goals div{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 4px;background:#16112a;box-shadow:0 0 0 3px var(--bd)}
+.goals b{font-family:'PS2P';font-weight:400;font-size:9px;color:var(--tx)}
+.goals span{display:flex;gap:2px}
+.eprev div.lord{box-shadow:0 0 0 3px var(--bd),inset 0 3px 0 var(--gold);background:rgba(255,204,77,.1);color:var(--gold)}
