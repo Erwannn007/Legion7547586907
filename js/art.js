@@ -354,7 +354,9 @@ const ICONS = {
   spear:["......ooo",".....owwo","....owwoo","...onoo..","..ono....",".ono.....","ono......","oo.......","........."],
   bomb:["......yo.",".....on..","..ooono..",".oddddo..","odlddddo.","odddddNo.","oddddNNo.",".odNNNo..","..oooo..."],
   sound:["....o....","...oo..o.","ooool.o.o","olllo.o.o","olllo.o.o","ooool.o.o","...oo..o.","....o....","........."],
-  mute:["....o....","...oo....","ooool.o.o","olllo..o.","olllo..o.","ooool.o.o","...oo....","....o....","........."]
+  mute:["....o....","...oo....","ooool.o.o","olllo..o.","olllo..o.","ooool.o.o","...oo....","....o....","........."],
+  home:["....o....","...owo...","..owwwo..",".owwwwwo.","owwwwwwwo",".owwoowo.",".owwoowo.",".owwoowo.",".ooooooo."],
+  bolt:[".....ooo.","....oyyo.","...oyyo..","..oyyoooo",".oyyyyyyo","ooooyyo..","...oyo...","..oyo....","..oo....."]
 };
 
 /* -------- COFFRES -------- */

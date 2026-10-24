@@ -6,11 +6,13 @@ function buildArmy(){
   for (const t of TYPES) {
     const c = SAV.cards[t], need = UP_N[c.lvl], max = c.lvl >= 5;
     const canUp = c.u && !max && c.n >= need && SAV.gold >= UP_G[c.lvl];
-    const b = document.createElement('button'); b.className = 'ucard pp' + (c.u ? '' : ' locked');
-    b.appendChild(portrait(t, c.lvl, 'blue', 3));
+    const b = document.createElement('button'); b.className = 'ucard pp' + (c.u ? '' : ' locked') + (canUp ? ' can' : '');
+    b.style.setProperty('--tier', c.u ? `var(--t${c.lvl})` : '');
+    b.insertAdjacentHTML('beforeend', '<div class="por"></div>');
+    b.firstChild.appendChild(portrait(t, c.lvl, 'blue', 3));
     b.insertAdjacentHTML('beforeend', `<div class="un">${UT[t].name}</div>
       <div class="ul">${c.u ? `Nv ${c.lvl} · ${LVL_NAMES[c.lvl]}` : `Niveau ${lvLabel(UT[t].unlock)} requis`}</div>
-      ${c.u ? `<div class="bar ${max ? 'full' : ''}"><i style="width:${max ? 100 : Math.min(100, c.n / need * 100)}%"></i><span>${max ? 'MAX' : `${c.n}/${need}`}</span></div>` : ''}
+      ${c.u ? `<div class="bar ${max ? 'full' : c.n >= need ? 'ok' : ''}"><i style="width:${max ? 100 : Math.min(100, c.n / need * 100)}%"></i><span>${max ? 'MAX' : `${c.n}/${need}`}</span></div>` : ''}
       ${canUp ? `<div class="badge">${ic('up', 3)}</div>` : !c.u ? `<div class="badge">${ic('lock', 3)}</div>` : ''}`);
     b.onclick = () => { sfx('click'); openUnit(t); };
     el.appendChild(b);
@@ -34,7 +36,7 @@ function openUnit(t){
   const hp = l => Math.round(U.hp * HPM(l)), dm = l => Math.round(U.dmg * DMGM(l));
   const need = UP_N[L], cost = UP_G[L], ok = !max && c.n >= need && SAV.gold >= cost;
   const nl = max ? L : L + 1;
-  openModal(`<div class="mc"><h3>${U.name}</h3>
+  openModal(`<div class="mc"><div class="kick">${U.role.toUpperCase()} · RANG ${LVL_NAMES[L].toUpperCase()}</div><h3 style="margin-top:0">${U.name}</h3>
     <div class="evo" id="evo"></div>
     <p style="text-align:center;margin:2px 0">${U.desc}</p>
     <div class="ability"><b>${U.ab}</b>${U.abd}</div>
@@ -44,10 +46,10 @@ function openUnit(t){
     ${statBar('speed', 'Vitesse', U.spd, U.spd / 45, U.spd / 45, U.spd)}
     ${statBar('shield', 'Armure', U.armor, U.armor / .55, U.armor / .55, Math.round(U.armor * 100) + '%')}
     <div class="vs"><div class="good"><b>Fort contre</b><br>${U.good}</div><div class="bad"><b>Faible contre</b><br>${U.bad}</div></div>
-    ${max ? '<p><b>Niveau maximum atteint</b></p>' : `<div class="bar"><i style="width:${Math.min(100, c.n / need * 100)}%"></i><span>${c.n} / ${need} cartes</span></div>`}
+    ${max ? '<p><b>Niveau maximum atteint</b></p>' : `<div class="bar ${c.n >= need ? 'ok' : ''}"><i style="width:${Math.min(100, c.n / need * 100)}%"></i><span>${c.n} / ${need} cartes</span></div>`}
     <div class="mbtns">
       ${max ? '' : `<button class="pb big ${ok ? 'green' : ''}" id="m-up" ${ok ? '' : 'disabled'}>${ic('up', 3)}Nv${L + 1} ${ic('coin', 2)}${cost}</button>`}
-      <button class="pb" id="m-x">Fermer</button></div></div>`, m => {
+      <button class="pb ghost" id="m-x">Fermer</button></div></div>`, m => {
     const evo = m.querySelector('#evo');
     for (let l = 1; l <= 5; l++) {
       const d = document.createElement('div'); d.className = l === L ? 'cur' : l > L ? 'fut' : '';
@@ -70,21 +72,21 @@ function buildShop(){
   el.innerHTML = items.map(it => {
     const dis = it.id === 'free' ? left > 0 : SAV.gold < it.cost;
     const lbl = it.id === 'free' ? (left > 0 ? `${Math.floor(left / 3600000)}h${String(Math.ceil(left % 3600000 / 60000)).padStart(2, '0')}` : 'Gratuit') : `${ic('coin', 2)}${it.cost}`;
-    return `<div class="chest pp"><div class="cimg"></div><div class="ci"><div class="ct">${it.name}</div><div class="cd">${it.desc}</div>
+    return `<div class="chest pp ${it.rare ? 'rare' : ''} ${it.id === 'free' && !dis ? 'ready' : ''}"><div class="cimg"></div><div class="ci"><div class="ct">${it.name}</div><div class="cd">${it.desc}</div>
       <button class="pb sm ${dis ? '' : 'brass'}" ${dis ? 'disabled' : ''}>${lbl}</button></div></div>`;
   }).join('');
   el.querySelectorAll('.chest').forEach((d, k) => {
     const it = items[k];
     const g = it.rare ? CHEST.map(r => r.replace(/b/g, 'g').replace(/B/g, 'G')) : CHEST;
     const pal = it.rare ? Object.assign({}, BASE_PAL, {g:'#7a4fc0', G:'#3e2470'}) : BASE_PAL;
-    const cs = paintGrid(g, pal, false, 5 * DPR); cs.style.width = '80px'; cs.style.height = '50px';
+    const cs = paintGrid(g, pal, false, 5 * DPR); cs.style.width = '80px'; cs.style.height = '50px'; cs.style.animationDelay = -k * .7 + 's';
     d.querySelector('.cimg').appendChild(cs);
     d.querySelector('button').onclick = () => {
       if (it.id === 'free') { if (SAV.lastFree + FREE_CD > Date.now()) return; SAV.lastFree = Date.now(); SAV.gold += 40; }
       else { if (SAV.gold < it.cost) return; SAV.gold -= it.cost; }
       const got = rollCards(it.n); save(); sfx('coin'); refreshGold(); buildShop();
       openModal(`<div class="mc"><h3>${it.name}</h3>${lootHtml(got)}
-        <div class="mbtns"><button class="pb brass" id="m-x">Super !</button></div></div>`, m => { fillLoot(m); m.querySelector('#m-x').onclick = closeModal; });
+        <div class="mbtns"><button class="pb big brass" id="m-x">Super !</button></div></div>`, m => { fillLoot(m); m.querySelector('#m-x').onclick = closeModal; });
     };
   });
 }
@@ -101,11 +103,11 @@ $('#b-help').onclick = () => openModal(`<div class="help"><h3>Comment jouer</h3>
 $('#b-set').onclick = function openSet(){
   openModal(`<h3>Réglages</h3>
     <div class="toggle"><span>Effets sonores</span><button class="pb sm ${SAV.sound ? 'green' : ''}" id="m-snd" style="width:96px">${ic(SAV.sound ? 'sound' : 'mute', 2)}${SAV.sound ? 'Oui' : 'Non'}</button></div>
-    <div class="mbtns"><button class="pb red" id="m-rst">Effacer la progression</button><button class="pb" id="m-x">Fermer</button></div>
-    <p style="text-align:center;font-size:14px;color:var(--mut);margin-top:12px">Légion Pixel · v2.1 · sauvegarde locale</p>`, m => {
+    <div class="mbtns"><button class="pb red" id="m-rst">Effacer la progression</button><button class="pb ghost" id="m-x">Fermer</button></div>
+    <p style="text-align:center;font-size:14px;color:var(--mut);margin-top:12px">Légion Pixel · v2.2 · sauvegarde locale</p>`, m => {
     m.querySelector('#m-snd').onclick = () => { SAV.sound = !SAV.sound; save(); openSet(); sfx('click'); };
     m.querySelector('#m-rst').onclick = () => confirmBox('Tout effacer ?', 'Pièces, cartes, niveaux et étoiles seront perdus définitivement.', 'Effacer', () => {
-      localStorage.removeItem(SAVE_KEY); SAV = defSave(); save(); refreshGold(); scene.list = []; sizeScene();
+      localStorage.removeItem(SAVE_KEY); SAV = defSave(); save(); refreshGold(); updateHome(); scene.list = []; sizeScene();
     });
     m.querySelector('#m-x').onclick = closeModal;
   });
@@ -113,6 +115,8 @@ $('#b-set').onclick = function openSet(){
 
 /* ---------- DÉMARRAGE ---------- */
 decorate();
+updateHome();
+setInterval(updateBadges, 30000);
 document.querySelectorAll('.cnt').forEach(el => el.insertAdjacentHTML('afterbegin', ic('person', 2)));
 refreshGold();
 requestAnimationFrame(loop);

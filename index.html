@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Légion Pixel">
-<meta name="theme-color" content="#1a1020">
+<meta name="theme-color" content="#0c0917">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -21,29 +21,26 @@
     <canvas id="scene"></canvas>
     <div class="topbar">
       <div class="chip pn" data-ic="coin"><span class="goldv">0</span></div>
+      <div class="chip pn st" data-ic="star"><span class="starv">0</span></div>
       <div style="flex:1"></div>
       <button class="pb sq" id="b-help" aria-label="Aide" data-ic="help"></button>
       <button class="pb sq" id="b-set" aria-label="Réglages" data-ic="gear"></button>
     </div>
     <div class="title-wrap">
       <canvas id="title"></canvas>
-      <div class="tagline pp">Recrutez, déployez, conquérez.</div>
+      <div class="tagline">RECRUTEZ · DÉPLOYEZ · CONQUÉREZ</div>
     </div>
     <div class="menu-btns" id="menu-btns">
-      <button class="pb big brass" data-go="story" data-ic="swords">Campagne</button>
-      <button class="pb big" data-go="sandbox" data-ic="flag">Bac à sable</button>
-      <div class="row">
-        <button class="pb" data-go="army" data-ic="shield">Armée</button>
-        <button class="pb" data-go="shop" data-ic="chest">Coffres</button>
-      </div>
-      <div id="install-hint" class="hint pp hidden">Pour installer : Partager, puis « Sur l’écran d’accueil ».</div>
+      <div class="prog"><span>CAMPAGNE</span><div class="bar gold"><i id="prog-b"></i></div><span id="prog-t">0/20</span></div>
+      <button class="pb big brass play" id="b-play"><span class="pt"><b>JOUER</b><span id="play-sub"></span></span></button>
+      <button class="pb side" data-go="sandbox" data-ic="flag"><span class="pt"><b>BAC À SABLE</b><span>Batailles libres, jusqu’à 600 soldats</span></span></button>
+      <div id="install-hint" class="hint hidden">Pour installer : Partager, puis « Sur l’écran d’accueil ».</div>
     </div>
   </section>
 
   <section id="s-story" class="screen">
     <div class="topbar">
-      <button class="pb sq" data-go="menu" aria-label="Retour" data-ic="back"></button>
-      <h2>Campagne</h2>
+      <h2>Campagne<small id="story-sub"></small></h2>
       <div class="chip pn" data-ic="coin"><span class="goldv">0</span></div>
     </div>
     <div class="scroll" id="story-list"></div>
@@ -51,8 +48,7 @@
 
   <section id="s-army" class="screen">
     <div class="topbar">
-      <button class="pb sq" data-go="menu" aria-label="Retour" data-ic="back"></button>
-      <h2>Armée</h2>
+      <h2>Armée<small>Montez vos soldats jusqu’au rang mythique</small></h2>
       <div class="chip pn" data-ic="coin"><span class="goldv">0</span></div>
     </div>
     <div class="scroll"><div id="army-grid" class="grid2"></div></div>
@@ -60,8 +56,7 @@
 
   <section id="s-shop" class="screen">
     <div class="topbar">
-      <button class="pb sq" data-go="menu" aria-label="Retour" data-ic="back"></button>
-      <h2>Coffres</h2>
+      <h2>Coffres<small>Des cartes pour renforcer l’armée</small></h2>
       <div class="chip pn" data-ic="coin"><span class="goldv">0</span></div>
     </div>
     <div class="scroll" id="shop-list"></div>
@@ -71,11 +66,18 @@
     <div class="bhud pn2">
       <button class="pb sq" id="b-quit" aria-label="Quitter" data-ic="close"></button>
       <div class="bt"><div id="b-title"></div><div id="b-sub"></div></div>
-      <div class="cnt pr" id="cnt-r">0</div><div class="cnt pbl" id="cnt-b">0</div>
+      <div class="vsc"><div class="cnt pbl" id="cnt-b">0</div><div class="cnt pr" id="cnt-r">0</div></div>
     </div>
-    <div id="cwrap"><canvas id="cv"></canvas><div id="toast" class="pp"></div></div>
+    <div id="cwrap"><canvas id="cv"></canvas><div id="toast" class="px"></div></div>
     <div class="bpanel pn2" id="bpanel"></div>
   </section>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab on" data-tab="menu" data-ic="home">Accueil</button>
+    <button class="tab" data-tab="story" data-ic="swords">Campagne</button>
+    <button class="tab" data-tab="army" data-ic="shield">Armée</button>
+    <button class="tab" data-tab="shop" data-ic="chest">Coffres</button>
+  </nav>
 
   <div id="modal" class="modal hidden"><div class="mbox pp" id="mbox"></div></div>
 </div>

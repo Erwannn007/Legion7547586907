@@ -103,47 +103,8 @@ function sfx(n){
 }
 window.addEventListener('pointerdown', () => ac(), {once:true});
 
-/* ---------- INTERFACE PIXEL : cadres 9-slice & icônes ---------- */
-const FR_PANEL = [".ooooo.","oLLLLLo","oLMMMDo","oLMMMDo","oLMMMDo","oDDDDDo",".ooooo."];
-const FR_BTN   = [".ooooo.","oLLLLLo","oLMMMDo","oLMMMDo","oMMMMDo","oDDDDDo","oXXXXXo",".ooooo."];
-const FR_BTNP  = [".ooooo.","oDDDDDo","oMMMMMo","oMMMMMo","oMMMMMo","oMMMMMo","oMMMMMo",".ooooo."];
-const FR_COLS = {
-  parch:{L:'#fff6d8',M:'#f0dcae',D:'#c9a66b',X:'#8a6a3a'}, sel:{L:'#fffbe8',M:'#fff3c8',D:'#e8a51c',X:'#8a6a3a'},
-  wood:{L:'#a06a3c',M:'#7a4e2a',D:'#54331a',X:'#301c0e'}, brass:{L:'#fff2a8',M:'#f2c14a',D:'#c8891c',X:'#7a5010'},
-  blue:{L:'#9cc8ff',M:'#3b7ff0',D:'#2557b8',X:'#163a80'}, red:{L:'#ffa8a0',M:'#d94040',D:'#a02828',X:'#601818'},
-  green:{L:'#b6f0a0',M:'#5bbf4a',D:'#3a8a2c',X:'#1f5216'}, navy:{L:'#4a5a9a',M:'#27305e',D:'#1a2044',X:'#0e1230'},
-  dark:{L:'#3a2a50',M:'#241a34',D:'#170f22',X:'#0a0610'}, gray:{L:'#b0aab8',M:'#7c7688',D:'#5a5466',X:'#3a3444'}
-};
+/* ---------- INTERFACE PIXEL : icônes (les cadres sont en CSS pur) ---------- */
 function gridURL(grid, pal, s){ return paintGrid(grid, pal, false, s).toDataURL(); }
-function frameRule(sel, grid, cols, sl){
-  const s = PX * DPR, url = gridURL(grid, Object.assign({o:'#1a1020'}, cols), s);
-  return `${sel}{border-style:solid;border-width:${sl[0]*PX}px ${sl[1]*PX}px ${sl[2]*PX}px ${sl[3]*PX}px;border-image:url(${url}) ${sl[0]*s} ${sl[1]*s} ${sl[2]*s} ${sl[3]*s} fill stretch;background:transparent}`;
-}
-(function injectFrames(){
-  const P = [3, 3, 3, 3], Bt = [3, 3, 4, 3];
-  let css = '';
-  css += frameRule('.pp', FR_PANEL, FR_COLS.parch, P);
-  css += frameRule('.pp.sel', FR_PANEL, FR_COLS.sel, P);
-  css += frameRule('.pn', FR_PANEL, FR_COLS.navy, P);
-  css += frameRule('.pn2', FR_PANEL, FR_COLS.dark, P);
-  css += frameRule('.pr', FR_PANEL, FR_COLS.red, P);
-  css += frameRule('.pbl', FR_PANEL, FR_COLS.blue, P);
-  for (const [k, c] of [['', 'wood'], ['.brass', 'brass'], ['.blue', 'blue'], ['.red', 'red'], ['.green', 'green'], ['.on', 'brass']]) {
-    css += frameRule('.pb' + k, FR_BTN, FR_COLS[c], Bt);
-    css += frameRule('.pb' + k + ':active:not(:disabled)', FR_BTNP, FR_COLS[c], Bt);
-  }
-  css += frameRule('.pb:disabled', FR_BTN, FR_COLS.gray, Bt) + '.pb:disabled{color:#d8d2e0;opacity:.85}';
-  css += '.pb.on{color:#3a2205;text-shadow:none}';
-  // fond en planches de bois
-  const tile = [];
-  for (let y = 0; y < 16; y++) { let r = ''; for (let x = 0; x < 16; x++) {
-    const seam = y % 8 === 7, joint = (y < 8 ? x === 5 : x === 12) && !seam;
-    r += seam ? 'D' : joint ? 'D' : ((x * 7 + y * 3) % 11 === 0 ? 'L' : (y % 8 === 0 ? 'L' : 'M'));
-  } tile.push(r); }
-  const turl = gridURL(tile, {L:'#3e2616', M:'#33200f', D:'#1e1209'}, PX * DPR);
-  css += `body{background-image:url(${turl})}`;
-  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-})();
 const icCache = {};
 const OFF_MAP = {y:'g', Y:'d', F:'l'};
 function icURL(name, s, off){
@@ -161,7 +122,8 @@ function starsHtml(n, s = 2){ return [1, 2, 3].map(k => ic('star', s, k > n)).jo
 function decorate(root){
   (root || document).querySelectorAll('[data-ic]').forEach(el => {
     if (el.dataset.icDone) return; el.dataset.icDone = 1;
-    el.insertAdjacentHTML('afterbegin', ic(el.dataset.ic, el.classList.contains('chip') ? 3 : 3));
+    const n = el.dataset.ic, small = el.classList.contains('chip') || (n === 'chest' && el.classList.contains('tab'));
+    el.insertAdjacentHTML('afterbegin', ic(n, small ? 2 : 3));
   });
 }
 
@@ -263,20 +225,50 @@ function pixelTextEl(lines, cssPx, top, bot){
 
 /* ---------- ÉCRANS ---------- */
 let cur = 'menu';
+const TABS = ['menu', 'story', 'army', 'shop'];
 function go(name){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   $('#s-' + name).classList.add('on'); cur = name;
+  $('#tabbar').classList.toggle('hidden', !TABS.includes(name));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
   refreshGold();
   if (name === 'story') buildStory();
   if (name === 'army') buildArmy();
   if (name === 'shop') buildShop();
   if (name === 'battle') resize();
-  if (name === 'menu') sizeScene();
+  if (name === 'menu') { updateHome(); sizeScene(); }
 }
-function refreshGold(){ document.querySelectorAll('.goldv').forEach(e => e.textContent = SAV.gold); }
+const totalStars = () => Object.values(SAV.stars).reduce((a, b) => a + b, 0);
+let shownGold = null;
+function refreshGold(){
+  document.querySelectorAll('.goldv').forEach(e => {
+    e.textContent = SAV.gold;
+    if (shownGold != null && shownGold !== SAV.gold) { e.parentNode.classList.remove('ticker'); void e.offsetWidth; e.parentNode.classList.add('ticker'); }
+  });
+  shownGold = SAV.gold;
+  document.querySelectorAll('.starv').forEach(e => e.textContent = `${totalStars()}/${NLEV * 3}`);
+  updateBadges();
+}
+// pastilles rouges sur les onglets : amélioration possible / coffre gratuit prêt
+function updateBadges(){
+  const up = TYPES.some(t => { const c = SAV.cards[t]; return c.u && c.lvl < 5 && c.n >= UP_N[c.lvl] && SAV.gold >= UP_G[c.lvl]; });
+  const free = SAV.lastFree + 4 * 3600 * 1000 <= Date.now();
+  for (const [tab, on] of [['army', up], ['shop', free]]) {
+    const el = document.querySelector(`.tab[data-tab="${tab}"]`); if (!el) continue;
+    let d = el.querySelector('.dot'); if (on && !d) el.insertAdjacentHTML('beforeend', '<i class="dot"></i>'); else if (!on && d) d.remove();
+  }
+}
+function updateHome(){
+  const done = Math.min(SAV.cleared, NLEV), next = Math.min(NLEV, SAV.cleared + 1);
+  $('#prog-t').textContent = `${done}/${NLEV}`; $('#prog-b').style.width = done / NLEV * 100 + '%';
+  $('#play-sub').textContent = SAV.cleared >= NLEV ? 'Campagne terminée !' : `Niveau ${lvLabel(next)} · ${CHAPTERS[Math.floor((next - 1) / 5)].name}`;
+}
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
   sfx('click'); if (b.dataset.go === 'sandbox') startSandbox(); else go(b.dataset.go);
 }));
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => { if (cur === b.dataset.tab) return; sfx('click'); go(b.dataset.tab); }));
+$('#b-play').insertAdjacentHTML('afterbegin', ic('swords', 4));
+$('#b-play').addEventListener('click', () => { sfx('click'); if (SAV.cleared >= NLEV) go('story'); else levelModal(SAV.cleared + 1); });
 function openModal(html, bind){ $('#mbox').innerHTML = html; decorate($('#mbox')); $('#modal').classList.remove('hidden'); if (bind) bind($('#mbox')); }
 function closeModal(){ $('#modal').classList.add('hidden'); delete $('#mbox').dataset.lock; }
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal' && !$('#mbox').dataset.lock) closeModal(); });

@@ -27,22 +27,38 @@ function enemyPos(s){
   const z = zone('red');
   return clampSquad(s.type, 'red', Math.round(22 + s.nx * (G.W - 44)), Math.round(z.y1 - 8 - s.d * (z.y1 - z.y0 - 16)));
 }
+// bannière de chapitre : le terrain du chapitre et quelques ennemis typiques
+const banCache = {};
+function chapterBanner(ci){
+  if (banCache[ci]) return cloneCanvas(banCache[ci]);
+  const W = 120, H = 34, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  x.drawImage(genGround(CHAPTERS[ci].theme, W, H, ci * 13 + 4), 0, 0);
+  const boss = levelDef(ci * 5 + 5).squads;
+  [0, 1, 2].forEach(k => {
+    const s = boss[k % boss.length];
+    drawUnitAt(x, {type:s.type, lvl:s.lvl, team:'red', face:-1, atk:0, moving:false, walk:0, flash:0, id:k, cd:0, cdMax:1, aim:-.2}, W - 14 - k * 17, H - 3 - (k % 2) * 2, 0);
+  });
+  banCache[ci] = c; return cloneCanvas(c);
+}
+function cloneCanvas(src){ const c = document.createElement('canvas'); c.width = src.width; c.height = src.height; c.getContext('2d').drawImage(src, 0, 0); return c; }
 function buildStory(){
   let h = '';
   CHAPTERS.forEach((ch, ci) => {
-    h += `<div class="chap pp"><div class="chh"><b>${ch.name}</b><span>Ch. ${ci + 1}</span></div><div class="band" data-theme="${ch.theme}"></div><div class="nodes">`;
+    const lockCh = ci * 5 + 1 > SAV.cleared + 1;
+    let st = 0; for (let j = 1; j <= 5; j++) st += SAV.stars[ci * 5 + j] || 0;
+    h += `<div class="chap pp ${lockCh ? 'lock' : ''}"><div class="chban" data-ci="${ci}"><div class="chn"><small>CHAPITRE ${ci + 1}</small><b>${ch.name}</b></div>
+      <div class="chs chip pn st">${ic('star', 2)}${st}/15</div></div><div class="nodes">`;
     for (let j = 1; j <= 5; j++) {
-      const i = ci * 5 + j, lock = i > SAV.cleared + 1, st = SAV.stars[i] || 0, curL = i === SAV.cleared + 1;
-      h += `<button class="pb node ${curL ? 'brass cur' : j === 5 ? 'red' : ''}" data-l="${i}" ${lock ? 'disabled' : ''}>
-        ${lock ? ic('lock', 3) : j === 5 ? ic('crown', 3) : `<span>${lvLabel(i)}</span>`}<span class="st">${lock ? '' : starsHtml(st, 1)}</span></button>`;
+      const i = ci * 5 + j, lock = i > SAV.cleared + 1, s = SAV.stars[i] || 0, curL = i === SAV.cleared + 1;
+      h += `<button class="pb node ${curL ? 'brass cur' : j === 5 && !lock ? 'red' : !lock ? 'done' : ''}" data-l="${i}" ${lock ? 'disabled' : ''}>
+        ${lock ? ic('lock', 2) : j === 5 ? ic('crown', 3) : `<span>${lvLabel(i)}</span>`}<span class="st">${lock || curL ? '' : starsHtml(s, 1)}</span></button>`;
     }
     h += '</div></div>';
   });
   const el = $('#story-list'); el.innerHTML = h;
-  el.querySelectorAll('.band').forEach(b => {
-    const g = genGround(b.dataset.theme, 8, 4, 2);
-    b.style.backgroundImage = `url(${(() => { const c = document.createElement('canvas'); c.width = 8 * PX * DPR; c.height = 4 * PX * DPR; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(g, 0, 0, c.width, c.height); return c.toDataURL(); })()})`;
-  });
+  $('#story-sub').textContent = `${Math.min(SAV.cleared, NLEV)}/${NLEV} niveaux · ${totalStars()} étoiles`;
+  el.querySelectorAll('.chban').forEach(b => b.prepend(chapterBanner(+b.dataset.ci)));
   el.querySelectorAll('.node').forEach(b => b.onclick = () => { sfx('click'); levelModal(+b.dataset.l); });
   const curN = el.querySelector('.node.cur'); if (curN) curN.scrollIntoView({block:'center'});
 }
@@ -50,12 +66,13 @@ function levelModal(i){
   const d = levelDef(i), grp = {};
   d.squads.forEach(s => { const k = s.type + s.lvl; grp[k] = grp[k] || {type:s.type, lvl:s.lvl, n:0}; grp[k].n++; });
   const first = SAV.cleared < i;
-  openModal(`<div class="mc"><h3>${d.boss ? 'Boss ' : 'Niveau '}${lvLabel(i)}</h3>
-    <p style="margin:0;color:var(--mut);font-weight:700">${CHAPTERS[d.ch].name}</p>
-    <p style="text-align:center">Les éclaireurs repèrent <b>${d.n} escouades</b>. Vous recruterez autant d’escouades, une par manche.</p>
+  openModal(`<div class="mc"><div class="chban" id="lban" style="width:100%;margin:6px 0 0"><div class="chn"><small>CHAPITRE ${d.ch + 1}${d.boss ? ' · BOSS' : ''}</small><b>${d.boss ? 'Boss ' : 'Niveau '}${lvLabel(i)}</b></div></div>
+    <p style="text-align:center">Les éclaireurs repèrent <b>${d.n} escouades</b> ennemies. Vous en recruterez autant, une par manche.</p>
     <div class="eprev" id="ep"></div>
-    <div class="rew">${ic('coin')} ${first ? 40 + i * 12 : Math.round((40 + i * 12) / 2)} &nbsp; ${ic('chest', 2)} ${first ? 3 + Math.floor(i / 3) : 2}</div>
-    <div class="mbtns"><button class="pb big brass" id="m-play" data-ic="swords">Combattre</button><button class="pb" id="m-x">Retour</button></div></div>`, m => {
+    <div class="kick">${first ? 'RÉCOMPENSES · PREMIÈRE VICTOIRE' : 'RÉCOMPENSES'}</div>
+    <div class="rew"><span class="pill">${ic('coin', 2)} ${first ? 40 + i * 12 : Math.round((40 + i * 12) / 2)}</span><span class="pill">${ic('chest', 2)} ${first ? 3 + Math.floor(i / 3) : 2} cartes</span></div>
+    <div class="mbtns"><button class="pb big brass" id="m-play" data-ic="swords">Combattre</button><button class="pb ghost" id="m-x">Retour</button></div></div>`, m => {
+    m.querySelector('#lban').prepend(chapterBanner(d.ch));
     const ep = m.querySelector('#ep');
     Object.values(grp).forEach(g => { const dv = document.createElement('div'); dv.appendChild(portrait(g.type, g.lvl, 'red', 1)); dv.insertAdjacentHTML('beforeend', `<span>${g.n}× Nv${g.lvl}</span>`); ep.appendChild(dv); });
     m.querySelector('#m-play').onclick = () => { closeModal(); startStory(i); };
@@ -121,13 +138,13 @@ function endStory(win){
   save(); sfx(win ? 'win' : 'lose');
   openModal(`<div class="mc"><div id="bn"></div>
     ${win ? `<div class="stars3">${starsHtml(stars, 5)}</div>` : `<p style="text-align:center">Améliorez vos soldats dans l’Armée, ou contrez mieux les escouades ennemies.</p>`}
-    <div class="rew">${ic('coin')} +${gold}</div>
+    <div class="rew"><span class="pill">${ic('coin', 2)} +${gold}</span></div>
     ${win ? lootHtml(got) : ''}
-    ${unlocked.map(t => `<div class="pp" style="width:100%;text-align:center;padding:6px"><b>Nouveau soldat : ${UT[t].name} !</b><div id="nu-${t}"></div><div style="font-size:15px">${UT[t].ab} — ${UT[t].abd}</div></div>`).join('')}
+    ${unlocked.map(t => `<div class="pp nu"><b>NOUVEAU SOLDAT : ${UT[t].name.toUpperCase()}</b><div id="nu-${t}"></div><div style="font-size:15px;color:var(--mut)">${UT[t].ab} — ${UT[t].abd}</div></div>`).join('')}
     <div class="mbtns">
       ${win && i < NLEV ? `<button class="pb big brass" id="m-next" data-ic="play">Niveau suivant</button>` : ''}
       <button class="pb ${win ? '' : 'brass big'}" id="m-retry" data-ic="undo">Rejouer</button>
-      <button class="pb" id="m-cont" data-ic="flag">Carte de campagne</button>
+      <button class="pb ghost" id="m-cont" data-ic="flag">Carte de campagne</button>
     </div></div>`, m => {
     $('#mbox').dataset.lock = '1';
     m.querySelector('#bn').appendChild(pixelTextEl([win ? 'VICTOIRE!' : 'DEFAITE'], 4, win ? '#fff2a8' : '#ffb0b0', win ? '#f5c542' : '#d94040'));
@@ -208,6 +225,12 @@ function powerBar(){
   const b = powerOf('blue'), r = powerOf('red'), pct = b + r ? b / (b + r) * 100 : 50;
   return `<div class="pw"><i style="width:${pct}%"></i><span><b>Vous ${Math.round(pct)}%</b><b>${Math.round(100 - pct)}% Ennemi</b></span></div>`;
 }
+// mise à jour en place pour que la barre glisse au lieu de sauter
+function updatePower(){
+  const w = document.getElementById('pwrap'); if (!w) return;
+  const b = powerOf('blue'), r = powerOf('red'), pct = b + r ? b / (b + r) * 100 : 50, l = w.querySelectorAll('b');
+  w.querySelector('i').style.width = pct + '%'; l[0].textContent = `Vous ${Math.round(pct)}%`; l[1].textContent = `${Math.round(100 - pct)}% Ennemi`;
+}
 let dragCard = null;
 function buildPanel(){
   bp.classList.toggle('compact', B.mode === 'story' && B.phase !== 'draft' && B.phase !== 'ready');
@@ -216,7 +239,7 @@ function buildPanel(){
       const o = B.sel != null ? B.offers[B.sel] : null;
       bp.innerHTML = `<div class="phead"><div class="phint">${o ? `<b>${UT[o.type].ab}</b> : ${UT[o.type].abd}` : B.msg}</div>
         <button class="pb sm" id="b-rr" ${B.rerolls ? '' : 'disabled'} style="width:64px;flex:none">${ic('dice', 2)}${B.rerolls}</button></div>
-        <div class="cards">${B.offers.map((o, k) => `<div class="dcard pp ${B.sel === k ? 'sel' : ''}" data-k="${k}"><div class="pc"></div>
+        <div class="cards">${B.offers.map((o, k) => `<div class="dcard pp ${B.sel === k ? 'sel' : ''}" data-k="${k}" style="--tier:var(--t${o.lvl})"><div class="pc"></div>
         <div class="dn">${UT[o.type].name}</div><div class="dl">${[1,2,3,4,5].map(l => `<i class="${l <= o.lvl ? 'on' : ''}"></i>`).join('')}</div>
         <div class="dr">${ic(UT[o.type].ic, 2)} ×${UT[o.type].squad}</div></div>`).join('')}</div>`;
       bp.querySelectorAll('.dcard').forEach(d => {
@@ -372,7 +395,7 @@ function loop(ts){
     if (hudAcc > .2) {
       hudAcc = 0;
       $('#cnt-b').lastChild.textContent = alive('blue'); $('#cnt-r').lastChild.textContent = alive('red');
-      const pw = document.getElementById('pwrap'); if (pw) pw.innerHTML = powerBar();
+      updatePower();
     }
   } else if (cur === 'menu') drawScene(rdt, t);
 }
